@@ -10,12 +10,6 @@
 #include<sys/epoll.h>
 #include<netinet/tcp.h>
 
-//设置非阻塞IO。
-void setnonblocking(int fd)
-{
-    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL)|O_NONBLOCK);
-}
-
 int main(int argc, char* argv[])
 {
     if(argc!=3)
@@ -26,7 +20,7 @@ int main(int argc, char* argv[])
     }
     
     //创建服务端用于监听的listenfd。
-    int listenfd=socket(AF_INET, SOCK_STREAM, 0);
+    int listenfd=socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
     if(listenfd<0)
     {
         perror("socket() failed.\n"); return -1;
@@ -38,9 +32,6 @@ int main(int argc, char* argv[])
     setsockopt(listenfd, IPPROTO_TCP, TCP_NODELAY, &opt, static_cast<socklen_t>(sizeof(opt)));
     setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, &opt, static_cast<socklen_t>(sizeof(opt)));
     setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &opt, static_cast<socklen_t>(sizeof(opt)));
-
-    //把服务器的listenfd设置为非阻塞。
-    setnonblocking(listenfd);
 
     sockaddr_in servaddr;    //服务器网址结构体。
     servaddr.sin_family=AF_INET;    //IPv4网络协议套接字类型。
@@ -91,8 +82,7 @@ int main(int argc, char* argv[])
             {
                 sockaddr_in clientaddr;
                 socklen_t len=sizeof(clientaddr);
-                int clientfd=accept(listenfd, (sockaddr*)&clientaddr, &len);
-                setnonblocking(clientfd);
+                int clientfd=accept4(listenfd, (sockaddr*)&clientaddr, &len, SOCK_NONBLOCK);
 
                 printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientfd, inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
