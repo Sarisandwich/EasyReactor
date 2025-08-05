@@ -43,7 +43,11 @@ int main(int argc, char* argv[])
         send(sockfd, buffer, strlen(buffer), 0);
 
         memset(buffer, 0, sizeof(buffer));
-        recv(sockfd, buffer, sizeof(buffer), 0);
+        if(recv(sockfd, buffer, sizeof(buffer), 0)<=0)
+        {
+            printf("recv() failed.\n");
+            return -1;
+        }
         printf("recv message:%s\n", buffer);
     }
 

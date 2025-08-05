@@ -10,6 +10,8 @@
 #include<sys/epoll.h>
 #include<netinet/tcp.h>
 
+#include"InetAddress.h"
+
 int main(int argc, char* argv[])
 {
     if(argc!=3)
@@ -33,13 +35,14 @@ int main(int argc, char* argv[])
     setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, &opt, static_cast<socklen_t>(sizeof(opt)));
     setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &opt, static_cast<socklen_t>(sizeof(opt)));
 
-    sockaddr_in servaddr;    //服务器网址结构体。
-    servaddr.sin_family=AF_INET;    //IPv4网络协议套接字类型。
-    servaddr.sin_addr.s_addr=inet_addr(argv[1]);    //服务端用于监听的IP地址。
-    servaddr.sin_port=htons(atoi(argv[2])); //服务端用于监听的端口。
+    // sockaddr_in servaddr;    //服务器网址结构体。
+    // servaddr.sin_family=AF_INET;    //IPv4网络协议套接字类型。
+    // servaddr.sin_addr.s_addr=inet_addr(argv[1]);    //服务端用于监听的IP地址。
+    // servaddr.sin_port=htons(atoi(argv[2])); //服务端用于监听的端口。
+    InetAddress servaddr(argv[1], atoi(argv[2]));
 
     //IP和端口绑定到socket。
-    if(bind(listenfd, (sockaddr*)&servaddr, sizeof(servaddr))<0)
+    if(bind(listenfd, servaddr.addr(), sizeof(sockaddr))<0)
     {
         perror("bind() failed."); close(listenfd); return -1;
     }
@@ -80,11 +83,13 @@ int main(int argc, char* argv[])
         {
             if(evs[i].data.fd==listenfd) //如果是listenfd有事件，说明有新的客户端连接。
             {
-                sockaddr_in clientaddr;
-                socklen_t len=sizeof(clientaddr);
-                int clientfd=accept4(listenfd, (sockaddr*)&clientaddr, &len, SOCK_NONBLOCK);
+                sockaddr_in peeraddr;
+                socklen_t len=sizeof(peeraddr);
+                int clientfd=accept4(listenfd, (sockaddr*)&peeraddr, &len, SOCK_NONBLOCK);
 
-                printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientfd, inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+                InetAddress clientaddr(peeraddr);
+
+                printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientfd, clientaddr.ip(), clientaddr.port());
 
                 //为新客户端连接准备读事件，添加到红黑树。
                 ev.data.fd=clientfd;

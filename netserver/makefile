@@ -3,8 +3,8 @@ all: client tcpepoll
 client: client.cpp
 	g++ -g -o client client.cpp
 
-tcpepoll: tcpepoll.cpp
-	g++ -g -o tcpepoll tcpepoll.cpp
+tcpepoll: tcpepoll.cpp InetAddress.cpp
+	g++ -g -o tcpepoll tcpepoll.cpp InetAddress.cpp
 
 clean:
-	rm client tcpepoll
+	rm -f client tcpepoll
