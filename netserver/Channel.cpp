@@ -1,7 +1,7 @@
 #include"Channel.h"
 
 
-Channel::Channel(Epoll* ep, int fd):ep_(ep), fd_(fd)
+Channel::Channel(EventLoop* loop, int fd):loop_(loop), fd_(fd)
 {}
 
 Channel::~Channel()
@@ -20,7 +20,7 @@ void Channel::use_et()
 void Channel::enable_reading()
 {
     events_|=EPOLLIN;
-    ep_->update_channel(this);
+    loop_->update_channel(this);
 }
 
 void Channel::set_inepoll()
@@ -76,7 +76,7 @@ void Channel::new_connection(Socket* servsock)
     printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
 
     //为新客户端连接准备读事件，添加到红黑树。
-    Channel* clientchannel=new Channel(ep_, clientsock->fd());
+    Channel* clientchannel=new Channel(loop_, clientsock->fd());
     clientchannel->set_readcb(std::bind(&Channel::onmessage, clientchannel));
     clientchannel->use_et();
     clientchannel->enable_reading();

@@ -2,6 +2,9 @@
 
 #include"Epoll.h"
 
+class Channel;
+class Epoll;
+
 //事件循环类。
 class EventLoop
 {
@@ -13,5 +16,5 @@ public:
 
     void run(); //运行事件循环。
 
-    Epoll* ep();    //返回ep地址。
+    void update_channel(Channel* ch);   //加入或修改红黑树内容。
 };

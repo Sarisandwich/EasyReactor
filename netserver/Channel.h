@@ -4,14 +4,15 @@
 #include<functional>
 #include"Epoll.h"
 #include"Socket.h"
+#include"EventLoop.h"
 
-class Epoll;
+class EventLoop;
 
 class Channel
 {
 private:
     int fd_=-1;
-    Epoll* ep_=nullptr; //Channel类需要外部传入fd和ep，Channel类对它们没有修改权限，只是需要它们的信息。
+    EventLoop* loop_=nullptr; //Channel类需要外部传入fd和EventLoop，Channel类对它们没有修改权限，只是需要它们的信息。
     //Channel与fd是一对一，Channel与ep是多对一。
     //使用Channel类，ev.data.ptr指向Channel，取代ev.data.fd，这样可以携带更多信息。
 
@@ -22,7 +23,7 @@ private:
     //回调函数。
     std::function<void()> read_cb_; //fd读事件的回调函数。
 public:
-    Channel(Epoll* ep, int fd); //构造函数。传入ep和fd。
+    Channel(EventLoop* loop, int fd); //构造函数。传入ep和EventLoop。
     ~Channel(); //析构函数。不可对ep和fd进行操作。
 
     int fd();   //返回fd。
