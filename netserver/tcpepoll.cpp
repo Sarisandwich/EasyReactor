@@ -13,6 +13,7 @@
 #include"InetAddress.h"
 #include"Socket.h"
 #include"Epoll.h"
+#include"EventLoop.h"
 
 int main(int argc, char* argv[])
 {
@@ -40,24 +41,14 @@ int main(int argc, char* argv[])
     //开启监听。缺省值为128。
     servsock.listen();
 
-    //创建epoll句柄（红黑树）。
-    Epoll ep;
+    //创建epoll句柄（红黑树）。epoll句柄在EventLoop的构造函数中创建。
+    EventLoop loop;
 
     //创建服务端的channel，让channel里的listenfd监听读事件，将信息加入红黑树。
-    Channel* servchannel=new Channel(&ep, servsock.fd());
+    Channel* servchannel=new Channel(loop.ep(), servsock.fd());
     servchannel->set_readcb(std::bind(&Channel::new_connection, servchannel, &servsock));
     servchannel->enable_reading();
 
-    //事件循环。
-    while(true)
-    {
-        //channels保存返回的发生事件的通道。
-        //通道channel保存着epoll_wait()返回的事件信息。
-        std::vector<Channel*> channels=ep.loop();
-
-        for(auto ch:channels)
-        {
-            ch->handle_events();
-        }
-    }
+    //运行事件循环。
+    loop.run();
 }
