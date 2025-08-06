@@ -56,66 +56,7 @@ int main(int argc, char* argv[])
 
         for(auto ch:channels)
         {
-            if(ch->fd()==servsock.fd()) //如果是listenfd有事件，说明有新的客户端连接。
-            {
-                InetAddress clientaddr;
-                Socket* clientsock=new Socket(servsock.accept(clientaddr));
-
-                printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
-
-                //为新客户端连接准备读事件，添加到红黑树。
-                Channel* clientchannel=new Channel(&ep, clientsock->fd());
-                clientchannel->use_et();
-                clientchannel->enable_reading();
-            }
-            else    //如果是客户端连接的fd有事件。
-            {
-                if(ch->revents() & EPOLLRDHUP)  //对方关闭连接。
-                {
-                    printf("client(fd=%d) closed connection.\n", ch->fd());
-                    close(ch->fd());
-                }
-                else if(ch->revents() & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读。
-                {
-                    char buffer[1024];
-                    while(true)
-                    {
-                        memset(buffer, 0, sizeof(buffer));
-                        ssize_t nread=recv(ch->fd(), buffer, sizeof(buffer)-1, 0);
-                        if(nread>0)
-                        {
-                            printf("recv(clientfd=%d) message: %s\n", ch->fd(), buffer);
-                            send(ch->fd(), buffer, sizeof(buffer), 0);
-                        }
-                        else if(nread==0)
-                        {
-                            printf("client(fd=%d) closed connection.\n", ch->fd());
-                            close(ch->fd());
-                            break;
-                        }
-                        else
-                        {
-                            if(errno==EAGAIN||errno==EWOULDBLOCK)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                perror("recv() failed.\n");
-                                close(ch->fd());
-                                break;
-                            }
-                        }
-                    }
-                }
-                else if(ch->revents() & EPOLLOUT)   //写事件。缓冲区可写。
-                {}
-                else    //发生错误。
-                {
-                    printf("client(fd=%d) error.\n", ch->fd());
-                    close(ch->fd());
-                }
-            }
+            ch->handle_events(&servsock);
         }
     }
 }

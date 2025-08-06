@@ -2,6 +2,7 @@
 
 #include<sys/epoll.h>
 #include"Epoll.h"
+#include"Socket.h"
 
 class Epoll;
 
@@ -31,4 +32,6 @@ public:
     bool is_inepoll();  //返回inepoll。
     uint32_t events();  //返回events。
     uint32_t revents(); //返回revents。
+
+    void handle_events(Socket* servsock);   //处理channel的事件。
 };
