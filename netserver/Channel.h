@@ -18,8 +18,9 @@ private:
     uint32_t events_=0; //Channel里fd所监听的事件。
     uint32_t revents_=0;    //Channel里fd发生的事件。
 
+    bool islisten_; //是否为服务端channel。构造函数传入。
 public:
-    Channel(Epoll* ep, int fd); //构造函数。传入ep和fd。
+    Channel(Epoll* ep, int fd, bool islisten); //构造函数。传入ep和fd。
     ~Channel(); //析构函数。不可对ep和fd进行操作。
 
     int fd();   //返回fd。

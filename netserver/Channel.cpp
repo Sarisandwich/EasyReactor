@@ -1,7 +1,7 @@
 #include"Channel.h"
 
 
-Channel::Channel(Epoll* ep, int fd):ep_(ep), fd_(fd)
+Channel::Channel(Epoll* ep, int fd, bool islisten):ep_(ep), fd_(fd), islisten_(islisten)
 {}
 
 Channel::~Channel()
@@ -50,26 +50,28 @@ uint32_t Channel::revents()
 
 void Channel::handle_events(Socket* servsock)
 {
-    if(fd_==servsock->fd()) //如果是listenfd有事件，说明有新的客户端连接。
+    if(revents_ & EPOLLRDHUP)  //对方关闭连接。
     {
-        InetAddress clientaddr;
-        Socket* clientsock=new Socket(servsock->accept(clientaddr));
-
-        printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
-
-        //为新客户端连接准备读事件，添加到红黑树。
-        Channel* clientchannel=new Channel(ep_, clientsock->fd());
-        clientchannel->use_et();
-        clientchannel->enable_reading();
+        printf("client(fd=%d) closed connection.\n", fd_);
+        close(fd_);
     }
-    else    //如果是客户端连接的fd有事件。
+    
+    else if(revents_ & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读。
+    // else    //如果是客户端连接的fd有事件。
     {
-        if(revents_ & EPOLLRDHUP)  //对方关闭连接。
+        if(islisten_==true) //如果是listenfd有事件，说明有新的客户端连接。
         {
-            printf("client(fd=%d) closed connection.\n", fd_);
-            close(fd_);
+            InetAddress clientaddr;
+            Socket* clientsock=new Socket(servsock->accept(clientaddr));
+
+            printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
+
+            //为新客户端连接准备读事件，添加到红黑树。
+            Channel* clientchannel=new Channel(ep_, clientsock->fd(), false);
+            clientchannel->use_et();
+            clientchannel->enable_reading();
         }
-        else if(revents_ & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读。
+        else    //如果是客户端连接的fd有事件。
         {
             char buffer[1024];
             while(true)
@@ -102,12 +104,12 @@ void Channel::handle_events(Socket* servsock)
                 }
             }
         }
-        else if(revents_ & EPOLLOUT)   //写事件。缓冲区可写。
-        {}
-        else    //发生错误。
-        {
-            printf("client(fd=%d) error.\n", fd_);
-            close(fd_);
-        }
+    }
+    else if(revents_ & EPOLLOUT)   //写事件。缓冲区可写。
+    {}
+    else    //发生错误。
+    {
+        printf("client(fd=%d) error.\n", fd_);
+        close(fd_);
     }
 }
