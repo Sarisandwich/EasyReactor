@@ -1,7 +1,7 @@
 #include"Channel.h"
 
 
-Channel::Channel(Epoll* ep, int fd, bool islisten):ep_(ep), fd_(fd), islisten_(islisten)
+Channel::Channel(Epoll* ep, int fd):ep_(ep), fd_(fd)
 {}
 
 Channel::~Channel()
@@ -48,62 +48,16 @@ uint32_t Channel::revents()
     return revents_;
 }
 
-void Channel::handle_events(Socket* servsock)
+void Channel::handle_events()
 {
     if(revents_ & EPOLLRDHUP)  //对方关闭连接。
     {
         printf("client(fd=%d) closed connection.\n", fd_);
         close(fd_);
     }
-    
     else if(revents_ & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读。
-    // else    //如果是客户端连接的fd有事件。
     {
-        if(islisten_==true) //如果是listenfd有事件，说明有新的客户端连接。
-        {
-            InetAddress clientaddr;
-            Socket* clientsock=new Socket(servsock->accept(clientaddr));
-
-            printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
-
-            //为新客户端连接准备读事件，添加到红黑树。
-            Channel* clientchannel=new Channel(ep_, clientsock->fd(), false);
-            clientchannel->use_et();
-            clientchannel->enable_reading();
-        }
-        else    //如果是客户端连接的fd有事件。
-        {
-            char buffer[1024];
-            while(true)
-            {
-                memset(buffer, 0, sizeof(buffer));
-                ssize_t nread=recv(fd_, buffer, sizeof(buffer)-1, 0);
-                if(nread>0)
-                {
-                    printf("recv(clientfd=%d) message: %s\n", fd_, buffer);
-                    send(fd_, buffer, sizeof(buffer), 0);
-                }
-                else if(nread==0)
-                {
-                    printf("client(fd=%d) closed connection.\n", fd_);
-                    close(fd_);
-                    break;
-                }
-                else
-                {
-                    if(errno==EAGAIN||errno==EWOULDBLOCK)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        perror("recv() failed.\n");
-                        close(fd_);
-                        break;
-                    }
-                }
-            }
-        }
+        read_cb_();
     }
     else if(revents_ & EPOLLOUT)   //写事件。缓冲区可写。
     {}
@@ -112,4 +66,57 @@ void Channel::handle_events(Socket* servsock)
         printf("client(fd=%d) error.\n", fd_);
         close(fd_);
     }
+}
+
+void Channel::new_connection(Socket* servsock)
+{
+    InetAddress clientaddr;
+    Socket* clientsock=new Socket(servsock->accept(clientaddr));
+
+    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
+
+    //为新客户端连接准备读事件，添加到红黑树。
+    Channel* clientchannel=new Channel(ep_, clientsock->fd());
+    clientchannel->set_readcb(std::bind(&Channel::onmessage, clientchannel));
+    clientchannel->use_et();
+    clientchannel->enable_reading();
+}
+
+void Channel::onmessage()
+{
+    char buffer[1024];
+    while(true)
+    {
+        memset(buffer, 0, sizeof(buffer));
+        ssize_t nread=recv(fd_, buffer, sizeof(buffer)-1, 0);
+        if(nread>0)
+        {
+            printf("recv(clientfd=%d) message: %s\n", fd_, buffer);
+            send(fd_, buffer, sizeof(buffer), 0);
+        }
+        else if(nread==0)
+        {
+            printf("client(fd=%d) closed connection.\n", fd_);
+            close(fd_);
+            break;
+        }
+        else
+        {
+            if(errno==EAGAIN||errno==EWOULDBLOCK)
+            {
+                break;
+            }
+            else
+            {
+                perror("recv() failed.\n");
+                close(fd_);
+                break;
+            }
+        }
+    }
+}
+
+void Channel::set_readcb(std::function<void()> func)
+{
+    read_cb_=func;
 }

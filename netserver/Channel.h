@@ -1,6 +1,7 @@
 #pragma once
 
 #include<sys/epoll.h>
+#include<functional>
 #include"Epoll.h"
 #include"Socket.h"
 
@@ -17,10 +18,11 @@ private:
     bool inepoll_=false;    //Channel是否已在红黑树上。
     uint32_t events_=0; //Channel里fd所监听的事件。
     uint32_t revents_=0;    //Channel里fd发生的事件。
-
-    bool islisten_; //是否为服务端channel。构造函数传入。
+private:
+    //回调函数。
+    std::function<void()> read_cb_; //fd读事件的回调函数。
 public:
-    Channel(Epoll* ep, int fd, bool islisten); //构造函数。传入ep和fd。
+    Channel(Epoll* ep, int fd); //构造函数。传入ep和fd。
     ~Channel(); //析构函数。不可对ep和fd进行操作。
 
     int fd();   //返回fd。
@@ -34,5 +36,10 @@ public:
     uint32_t events();  //返回events。
     uint32_t revents(); //返回revents。
 
-    void handle_events(Socket* servsock);   //处理channel的事件。
+    void handle_events();   //处理channel的事件。
+
+    void new_connection(Socket* servsock);  //处理新客户端连接请求。
+    void onmessage();   //处理对端发送过来的报文。
+
+    void set_readcb(std::function<void()> func);    //设置fd读事件的回调函数。 
 };

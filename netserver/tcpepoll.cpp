@@ -44,7 +44,8 @@ int main(int argc, char* argv[])
     Epoll ep;
 
     //创建服务端的channel，让channel里的listenfd监听读事件，将信息加入红黑树。
-    Channel* servchannel=new Channel(&ep, servsock.fd(), true);
+    Channel* servchannel=new Channel(&ep, servsock.fd());
+    servchannel->set_readcb(std::bind(&Channel::new_connection, servchannel, &servsock));
     servchannel->enable_reading();
 
     //事件循环。
@@ -56,7 +57,7 @@ int main(int argc, char* argv[])
 
         for(auto ch:channels)
         {
-            ch->handle_events(&servsock);
+            ch->handle_events();
         }
     }
 }
