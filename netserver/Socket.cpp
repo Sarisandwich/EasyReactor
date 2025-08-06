@@ -16,7 +16,9 @@ Socket::Socket(int fd):fd_(fd)
 {}
 
 Socket::~Socket()
-{}
+{
+    ::close(fd_);
+}
 
 int Socket::fd() const
 {
