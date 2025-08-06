@@ -12,6 +12,7 @@
 
 #include"InetAddress.h"
 #include"Socket.h"
+#include"Epoll.h"
 
 int main(int argc, char* argv[])
 {
@@ -31,10 +32,6 @@ int main(int argc, char* argv[])
     servsock.set_reuseport();
     servsock.set_keepalive();
 
-    // sockaddr_in servaddr;    //服务器网址结构体。
-    // servaddr.sin_family=AF_INET;    //IPv4网络协议套接字类型。
-    // servaddr.sin_addr.s_addr=inet_addr(argv[1]);    //服务端用于监听的IP地址。
-    // servaddr.sin_port=htons(atoi(argv[2])); //服务端用于监听的端口。
     InetAddress servaddr(argv[1], atoi(argv[2]));
 
     //IP和端口绑定到socket。
@@ -44,34 +41,21 @@ int main(int argc, char* argv[])
     servsock.listen();
 
     //创建epoll句柄（红黑树）。
-    int epollfd=epoll_create(1);
+    Epoll ep;
 
-    //为listenfd准备读事件。
-    epoll_event ev;
-    ev.data.fd=servsock.fd();
-    ev.events=EPOLLIN;
-
-    //需要监视的listenfd加入红黑树。
-    epoll_ctl(epollfd, EPOLL_CTL_ADD, servsock.fd(), &ev);
-
-    //存放epoll_wait()返回事件的数组。
-    epoll_event evs[10];
+    //为listenfd准备读事件。需要监视的listenfd加入红黑树。
+    ep.add_fd(servsock.fd(), EPOLLIN);
 
     //事件循环。
     while(true)
     {
-        //等待监听的fd有事件发生。
-        int infds=epoll_wait(epollfd, evs, 10, -1);
+        //evs保存返回的发生的事件。
+        std::vector<epoll_event> evs;
+        evs=ep.loop();
 
-        //返回失败。
-        if(infds<0) {perror("epoll_wait() failed."); break;}
-        //超时。
-        if(infds==0) {perror("epoll_wait() timeout."); break;}
-
-        //infds>0说明有事件发生的fd的数量。
-        for(int i=0;i<infds;++i)
+        for(auto& ev:evs)
         {
-            if(evs[i].data.fd==servsock.fd()) //如果是listenfd有事件，说明有新的客户端连接。
+            if(ev.data.fd==servsock.fd()) //如果是listenfd有事件，说明有新的客户端连接。
             {
                 InetAddress clientaddr;
                 Socket* clientsock=new Socket(servsock.accept(clientaddr));
@@ -79,33 +63,31 @@ int main(int argc, char* argv[])
                 printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
 
                 //为新客户端连接准备读事件，添加到红黑树。
-                ev.data.fd=clientsock->fd();
-                ev.events=EPOLLIN|EPOLLET;
-                epoll_ctl(epollfd, EPOLL_CTL_ADD, clientsock->fd(), &ev);
+                ep.add_fd(clientsock->fd(), EPOLLIN|EPOLLET);
             }
             else    //如果是客户端连接的fd有事件。
             {
-                if(evs[i].events & EPOLLRDHUP)  //对方关闭连接。
+                if(ev.events & EPOLLRDHUP)  //对方关闭连接。
                 {
-                    printf("client(fd=%d) closed connection.\n", evs[i].data.fd);
-                    close(evs[i].data.fd);
+                    printf("client(fd=%d) closed connection.\n", ev.data.fd);
+                    close(ev.data.fd);
                 }
-                else if(evs[i].events & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读。
+                else if(ev.events & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读。
                 {
                     char buffer[1024];
                     while(true)
                     {
                         memset(buffer, 0, sizeof(buffer));
-                        ssize_t nread=recv(evs[i].data.fd, buffer, sizeof(buffer)-1, 0);
+                        ssize_t nread=recv(ev.data.fd, buffer, sizeof(buffer)-1, 0);
                         if(nread>0)
                         {
-                            printf("recv(clientfd=%d) message: %s\n", evs[i].data.fd, buffer);
-                            send(evs[i].data.fd, buffer, sizeof(buffer), 0);
+                            printf("recv(clientfd=%d) message: %s\n", ev.data.fd, buffer);
+                            send(ev.data.fd, buffer, sizeof(buffer), 0);
                         }
                         else if(nread==0)
                         {
-                            printf("client(fd=%d) closed connection.\n", evs[i].data.fd);
-                            close(evs[i].data.fd);
+                            printf("client(fd=%d) closed connection.\n", ev.data.fd);
+                            close(ev.data.fd);
                             break;
                         }
                         else
@@ -117,18 +99,18 @@ int main(int argc, char* argv[])
                             else
                             {
                                 perror("recv() failed.\n");
-                                close(evs[i].data.fd);
+                                close(ev.data.fd);
                                 break;
                             }
                         }
                     }
                 }
-                else if(evs[i].events & EPOLLOUT)   //写事件。缓冲区可写。
+                else if(ev.events & EPOLLOUT)   //写事件。缓冲区可写。
                 {}
                 else    //发生错误。
                 {
-                    printf("client(fd=%d) error.\n", evs[i].data.fd);
-                    close(evs[i].data.fd);
+                    printf("client(fd=%d) error.\n", ev.data.fd);
+                    close(ev.data.fd);
                 }
             }
         }
