@@ -4,6 +4,7 @@
 #include"Socket.h"
 #include"Channel.h"
 #include"Acceptor.h"
+#include"Connection.h"
 
 
 //TCP网络服务类。
@@ -17,4 +18,6 @@ public:
     ~TcpServer();   //析构函数。
 
     void start();   //运行事件循环。
+
+    void newConnection(Socket* clientsock);   //处理新客户端连接请求。
 };
