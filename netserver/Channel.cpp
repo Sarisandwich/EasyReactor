@@ -68,6 +68,7 @@ void Channel::handle_events()
     }
 }
 
+#include"Connection.h"
 void Channel::new_connection(Socket* servsock)
 {
     InetAddress clientaddr;
@@ -75,11 +76,7 @@ void Channel::new_connection(Socket* servsock)
 
     printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
 
-    //为新客户端连接准备读事件，添加到红黑树。
-    Channel* clientchannel=new Channel(loop_, clientsock->fd());
-    clientchannel->set_readcb(std::bind(&Channel::onmessage, clientchannel));
-    clientchannel->use_et();
-    clientchannel->enable_reading();
+    Connection* conn=new Connection(loop_, clientsock);
 }
 
 void Channel::onmessage()
