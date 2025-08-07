@@ -68,17 +68,6 @@ void Channel::handle_events()
     }
 }
 
-#include"Connection.h"
-void Channel::new_connection(Socket* servsock)
-{
-    InetAddress clientaddr;
-    Socket* clientsock=new Socket(servsock->accept(clientaddr));
-
-    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
-
-    Connection* conn=new Connection(loop_, clientsock);
-}
-
 void Channel::onmessage()
 {
     char buffer[1024];

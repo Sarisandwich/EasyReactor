@@ -6,6 +6,7 @@
 #include"Socket.h"
 #include"Channel.h"
 #include"InetAddress.h"
+#include"Connection.h"
 
 //封装监听连接的Channel。
 class Acceptor
@@ -17,4 +18,6 @@ private:
 public:
     Acceptor(EventLoop* loop, const std::string& ip, uint16_t port);  //构造函数。
     ~Acceptor();    //析构函数。
+
+    void newConnection();   //处理新客户端连接请求。
 };

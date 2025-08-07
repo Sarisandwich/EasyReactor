@@ -25,7 +25,7 @@ Acceptor::Acceptor(EventLoop* loop, const std::string& ip, uint16_t port):loop_(
 
     //创建服务端的channel，让channel里的listenfd监听读事件，将信息加入红黑树。
     acceptchannel_=new Channel(loop_, servsock_->fd());
-    acceptchannel_->set_readcb(std::bind(&Channel::new_connection, acceptchannel_, servsock_));
+    acceptchannel_->set_readcb(std::bind(&Acceptor::newConnection, this));
     acceptchannel_->enable_reading();
 }
 
@@ -33,4 +33,14 @@ Acceptor::~Acceptor()
 {
     delete servsock_;
     delete acceptchannel_;
+}
+
+void Acceptor::newConnection()
+{
+    InetAddress clientaddr;
+    Socket* clientsock=new Socket(servsock_->accept(clientaddr));
+
+    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
+
+    Connection* conn=new Connection(loop_, clientsock);
 }
