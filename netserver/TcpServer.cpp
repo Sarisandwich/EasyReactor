@@ -10,6 +10,10 @@ TcpServer::TcpServer(const std::string& ip, uint16_t port)
 TcpServer::~TcpServer()
 {
     delete acceptor_;
+    for(auto& conn:conns_)
+    {
+        delete conn.second;
+    }
 }
 
 void TcpServer::start()
@@ -20,5 +24,7 @@ void TcpServer::start()
 void TcpServer::newConnection(Socket* clientsock)
 {
     Connection* conn=new Connection(&loop_, clientsock);
-    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", conn->fd(), conn->ip().c_str(), conn->port());
+    printf("new connection(fd=%d, ip=%s, port=%d) ok.\n", conn->fd(), conn->ip().c_str(), conn->port());
+
+    conns_[conn->fd()]=conn;
 }
