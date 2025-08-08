@@ -17,4 +17,8 @@ private:
 public:
     Connection(EventLoop* loop, Socket* clientsock);  //构造函数。
     ~Connection();    //析构函数。
+
+    int fd() const; //返回fd。
+    std::string ip() const; //返回ip。
+    uint16_t port() const;  //返回端口。
 };

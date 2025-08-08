@@ -39,8 +39,7 @@ void Acceptor::newConnection()
 {
     InetAddress clientaddr;
     Socket* clientsock=new Socket(servsock_->accept(clientaddr));
-
-    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", clientsock->fd(), clientaddr.ip(), clientaddr.port());
+    clientsock->set_ipport(clientaddr.ip(), clientaddr.port());
 
     newConnection_cb_(clientsock);
 }

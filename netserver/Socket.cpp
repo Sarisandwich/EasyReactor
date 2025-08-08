@@ -25,6 +25,16 @@ int Socket::fd() const
     return fd_;
 }
 
+std::string Socket::ip() const
+{
+    return ip_;
+}
+
+uint16_t Socket::port() const
+{
+    return port_;
+}
+
 void Socket::set_reuseaddr(bool on)
 {
     int opt=on?1:0;
@@ -55,6 +65,12 @@ void Socket::bind(const InetAddress& servaddr)
     {
         perror("bind() failed."); close(fd_); exit(-1);
     }
+    set_ipport(servaddr.ip(), servaddr.port());
+}
+
+void Socket::set_ipport(const std::string& ip, uint16_t port)
+{
+    ip_=ip; port_=port;
 }
 
 void Socket::listen(int n)

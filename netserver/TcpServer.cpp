@@ -20,4 +20,5 @@ void TcpServer::start()
 void TcpServer::newConnection(Socket* clientsock)
 {
     Connection* conn=new Connection(&loop_, clientsock);
+    printf("accept client(fd=%d, ip=%s, port=%d) ok.\n", conn->fd(), conn->ip().c_str(), conn->port());
 }
