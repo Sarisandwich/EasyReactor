@@ -80,8 +80,7 @@ void Channel::onmessage()
         }
         else if(nread==0)
         {
-            printf("client(fd=%d) closed connection.\n", fd_);
-            close(fd_);
+            close_cb_();
             break;
         }
         else

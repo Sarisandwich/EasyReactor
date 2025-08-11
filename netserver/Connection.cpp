@@ -16,6 +16,7 @@ Connection::~Connection()
 {
     delete clientsock_;
     delete clientchannel_;
+    printf("Connection 被析构。\n");
 }
 
 int Connection::fd() const
