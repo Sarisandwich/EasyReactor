@@ -52,8 +52,7 @@ void Channel::handle_events()
 {
     if(revents_ & EPOLLRDHUP)  //对方关闭连接。
     {
-        printf("client(fd=%d) closed connection.\n", fd_);
-        close(fd_);
+        close_cb_();
     }
     else if(revents_ & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读。
     {
@@ -63,8 +62,7 @@ void Channel::handle_events()
     {}
     else    //发生错误。
     {
-        printf("client(fd=%d) error.\n", fd_);
-        close(fd_);
+        error_cb_();
     }
 }
 
@@ -105,4 +103,14 @@ void Channel::onmessage()
 void Channel::set_readcb(std::function<void()> func)
 {
     read_cb_=func;
+}
+
+void Channel::set_closecb(std::function<void()> func)
+{
+    close_cb_=func;
+}
+
+void Channel::set_errorcb(std::function<void()> func)
+{
+    error_cb_=func;
 }

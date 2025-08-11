@@ -22,6 +22,9 @@ private:
 private:
     //回调函数。
     std::function<void()> read_cb_; //fd读事件的回调函数。
+    std::function<void()> close_cb_;    //关闭fd的回调函数。
+    std::function<void()> error_cb_;    //fd发生错误的回调函数。
+
 public:
     Channel(EventLoop* loop, int fd); //构造函数。传入ep和EventLoop。
     ~Channel(); //析构函数。不可对ep和fd进行操作。
@@ -42,4 +45,6 @@ public:
     void onmessage();   //处理对端发送过来的报文。
 
     void set_readcb(std::function<void()> func);    //设置fd读事件的回调函数。 
+    void set_closecb(std::function<void()> func);   //设置关闭fd的回调函数。
+    void set_errorcb(std::function<void()> func);   //设置fd()发生错误的回调函数。
 };
