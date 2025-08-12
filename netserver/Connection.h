@@ -26,6 +26,8 @@ public:
     std::string ip() const; //返回ip。
     uint16_t port() const;  //返回端口。
 
+    void onmessage();   //处理对端发送过来的报文。
+
     void set_closecb(std::function<void(Connection*)> func);    //设置关闭fd的回调函数。
     void set_errorcb(std::function<void(Connection*)> func);    //设置fd发生错误的回调函数。
 

@@ -42,8 +42,6 @@ public:
 
     void handle_events();   //处理channel的事件。
 
-    void onmessage();   //处理对端发送过来的报文。
-
     void set_readcb(std::function<void()> func);    //设置fd读事件的回调函数。 
     void set_closecb(std::function<void()> func);   //设置关闭fd的回调函数。
     void set_errorcb(std::function<void()> func);   //设置fd()发生错误的回调函数。

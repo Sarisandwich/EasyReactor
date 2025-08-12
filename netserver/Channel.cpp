@@ -66,39 +66,6 @@ void Channel::handle_events()
     }
 }
 
-void Channel::onmessage()
-{
-    char buffer[1024];
-    while(true)
-    {
-        memset(buffer, 0, sizeof(buffer));
-        ssize_t nread=recv(fd_, buffer, sizeof(buffer)-1, 0);
-        if(nread>0)
-        {
-            printf("recv(clientfd=%d) message: %s\n", fd_, buffer);
-            send(fd_, buffer, sizeof(buffer), 0);
-        }
-        else if(nread==0)
-        {
-            close_cb_();
-            break;
-        }
-        else
-        {
-            if(errno==EAGAIN||errno==EWOULDBLOCK)
-            {
-                break;
-            }
-            else
-            {
-                perror("recv() failed.\n");
-                close(fd_);
-                break;
-            }
-        }
-    }
-}
-
 void Channel::set_readcb(std::function<void()> func)
 {
     read_cb_=func;
