@@ -39,21 +39,35 @@ void Connection::onmessage()
     {
         memset(buffer, 0, sizeof(buffer));
         ssize_t nread=recv(fd(), buffer, sizeof(buffer)-1, 0);
-        if(nread>0)
+        if(nread>0)    //成功读取数据。
         {
-            printf("recv(clientfd=%d) message: %s\n", fd(), buffer);
-            send(fd(), buffer, sizeof(buffer), 0);
+            // printf("recv(clientfd=%d) message: %s\n", fd(), buffer);
+            // send(fd(), buffer, sizeof(buffer), 0);
+            inputbuffer_.append(buffer, nread);
         }
-        else if(nread==0)
+        else if(nread==0)   //客户端连接已断开。
         {
             closeConnection();
             break;
         }
         else
         {
-            if(errno==EAGAIN||errno==EWOULDBLOCK)
+            if(errno==EAGAIN||errno==EWOULDBLOCK)   //数据读取完毕。
             {
+                printf("recv(clientfd=%d) message: %s\n", fd(), inputbuffer_.data());
+                ///////////////////////////////////////////
+                //这个位置，对inputbuffer_里的数据经过某些处理。
+                ///////////////////////////////////////////
+
+                outputbuffer_=inputbuffer_;
+                inputbuffer_.clear();
+                send(fd(), outputbuffer_.data(), outputbuffer_.size(), 0);
+
                 break;
+            }
+            else if(errno==EINTR)   //读取数据的时候被信号中断，继续读取。
+            {
+                continue;
             }
             else
             {
