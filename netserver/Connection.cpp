@@ -8,6 +8,7 @@ Connection::Connection(EventLoop* loop, Socket* clientsock):loop_(loop), clients
     clientchannel_->set_readcb(std::bind(&Connection::onmessage, this));
     clientchannel_->set_closecb(std::bind(&Connection::closeConnection, this));
     clientchannel_->set_errorcb(std::bind(&Connection::errorConnection, this));
+    clientchannel_->set_writecb(std::bind(&Connection::writeCallback, this));
     clientchannel_->use_et();
     clientchannel_->enable_reading();
 }
@@ -86,6 +87,12 @@ void Connection::onmessage()
     }
 }
 
+void Connection::send(const char* data, size_t size)
+{
+    outputbuffer_.append(data, size);
+    clientchannel_->enable_writing();
+}
+
 void Connection::set_closecb(std::function<void(Connection*)> func)
 {
     close_cb_=func;
@@ -109,4 +116,18 @@ void Connection::closeConnection()
 void Connection::errorConnection()
 {
     error_cb_(this);
+}
+
+void Connection::writeCallback()
+{
+    int writen=::send(fd(), outputbuffer_.data(), outputbuffer_.size(), 0);
+    if(writen>0)
+    {
+        outputbuffer_.erase(0, writen);
+    }
+
+    if(outputbuffer_.size()==0)
+    {
+        clientchannel_->disable_writing();
+    }
 }

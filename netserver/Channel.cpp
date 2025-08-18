@@ -23,6 +23,24 @@ void Channel::enable_reading()
     loop_->update_channel(this);
 }
 
+void Channel::disable_reading()
+{
+    events_&=~EPOLLIN;
+    loop_->update_channel(this);
+}
+
+void Channel::enable_writing()
+{
+    events_|=EPOLLOUT;
+    loop_->update_channel(this);
+}
+
+void Channel::disable_writing()
+{
+    events_&=~EPOLLOUT;
+    loop_->update_channel(this);
+}
+
 void Channel::set_inepoll()
 {
     inepoll_=true;
@@ -59,7 +77,9 @@ void Channel::handle_events()
         read_cb_();
     }
     else if(revents_ & EPOLLOUT)   //写事件。缓冲区可写。
-    {}
+    {
+        write_cb_();
+    }
     else    //发生错误。
     {
         error_cb_();
@@ -79,4 +99,9 @@ void Channel::set_closecb(std::function<void()> func)
 void Channel::set_errorcb(std::function<void()> func)
 {
     error_cb_=func;
+}
+
+void Channel::set_writecb(std::function<void()> func)
+{
+    write_cb_=func;
 }

@@ -32,6 +32,7 @@ public:
     uint16_t port() const;  //返回端口。
 
     void onmessage();   //处理对端发送过来的报文。
+    void send(const char* data, size_t size);    //发送数据。
 
     void set_closecb(std::function<void(Connection*)> func);    //设置关闭fd的回调函数。
     void set_errorcb(std::function<void(Connection*)> func);    //设置fd发生错误的回调函数。
@@ -39,4 +40,5 @@ public:
 
     void closeConnection(); //关闭客户端连接。供Channel回调。
     void errorConnection(); //客户端连接发生错误。供Channel回调。
+    void writeCallback();   //处理写事件。供Channel回调。
 };

@@ -24,6 +24,7 @@ private:
     std::function<void()> read_cb_; //fd读事件的回调函数。
     std::function<void()> close_cb_;    //关闭fd的回调函数。
     std::function<void()> error_cb_;    //fd发生错误的回调函数。
+    std::function<void()> write_cb_; //fd写事件的回调函数。
 
 public:
     Channel(EventLoop* loop, int fd); //构造函数。传入ep和EventLoop。
@@ -33,6 +34,9 @@ public:
     
     void use_et();  //启用边缘触发。
     void enable_reading();  //epoll_wait()监听读事件。
+    void disable_reading(); //epoll_wait()取消监听读事件。
+    void enable_writing();  //epoll_wait()监听写事件。
+    void disable_writing(); //epoll_wait()取消监听写事件。
     void set_inepoll(); //设置inepoll为true。
     void set_revents(uint32_t ev); //设置revents的值为ev。
 
@@ -45,4 +49,5 @@ public:
     void set_readcb(std::function<void()> func);    //设置fd读事件的回调函数。 
     void set_closecb(std::function<void()> func);   //设置关闭fd的回调函数。
     void set_errorcb(std::function<void()> func);   //设置fd()发生错误的回调函数。
+    void set_writecb(std::function<void()> func);    //设置fd写事件的回调函数。
 };
