@@ -91,7 +91,7 @@ void Connection::onmessage()
 
 void Connection::send(const char* data, size_t size)
 {
-    outputbuffer_.append(data, size);
+    outputbuffer_.appendWithHead(data, size);
     clientchannel_->enable_writing();
 }
 
@@ -105,7 +105,7 @@ void Connection::set_errorcb(std::function<void(Connection*)> func)
     error_cb_=func;
 }
 
-void Connection::set_onmessagecb(std::function<void(Connection*, std::string)> func)
+void Connection::set_onmessagecb(std::function<void(Connection*, std::string&)> func)
 {
     onmessage_cb_=func;
 }

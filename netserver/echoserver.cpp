@@ -1,11 +1,14 @@
+//echoserver.cpp
+//回显服务器。
+
 #include"EchoServer.h"
 
 int main(int argc, char* argv[])
 {
     if(argc!=3)
     {
-        printf("usage: ./tcpepoll ip port.\n");
-        printf("example: ./tcpepoll 172.20.15.230 5005.\n\n");
+        printf("usage: ./echoserver ip port.\n");
+        printf("example: ./echoserver 172.20.15.230 5005.\n\n");
         return -1;
     }
     

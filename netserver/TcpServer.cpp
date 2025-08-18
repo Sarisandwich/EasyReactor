@@ -52,7 +52,7 @@ void TcpServer::errorConnection(Connection* conn)
     delete conn;
 }
 
-void TcpServer::onmessage(Connection* conn, std::string message)
+void TcpServer::onmessage(Connection* conn, std::string& message)
 {
     if(onmessage_cb_) onmessage_cb_(conn, message);
 }
@@ -82,7 +82,7 @@ void TcpServer::set_errorConnectioncb(std::function<void(Connection*)> func)
     errorConnection_cb_=func;
 }
 
-void TcpServer::set_onmessagecb(std::function<void(Connection*,std::string &message)> func)
+void TcpServer::set_onmessagecb(std::function<void(Connection*,std::string& message)> func)
 {
     onmessage_cb_=func;
 }

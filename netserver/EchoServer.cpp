@@ -50,16 +50,13 @@ void EchoServer::HandleError(Connection *conn)
 }
 
 // 处理客户端的请求报文，在TcpServer类中回调此函数。
-void EchoServer::HandleMessage(Connection *conn,std::string message)     
+void EchoServer::HandleMessage(Connection *conn,std::string& message)     
 {
+    /////////////////////////////
     // 在这里，将经过若干步骤的运算。
-    message="reply:"+message;          // 回显业务。
-                
-    int len=message.size();                   // 计算回应报文的大小。
-    std::string tmpbuf((char*)&len,4);  // 把报文头部填充到回应报文中。
-    tmpbuf.append(message);             // 把报文内容填充到回应报文中。
-                
-    conn->send(tmpbuf.data(),tmpbuf.size());   // 把临时缓冲区中的数据发送出去。
+    /////////////////////////////
+    
+    conn->send(message.data(),message.size());   // 把临时缓冲区中的数据发送出去。
 }
 
 // 数据发送完成后，在TcpServer类中回调此函数。
