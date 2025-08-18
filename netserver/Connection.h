@@ -22,6 +22,7 @@ private:
     //回调函数。
     std::function<void(Connection*)> close_cb_; //关闭fd的回调函数。
     std::function<void(Connection*)> error_cb_; //fd发生错误的回调函数。
+    std::function<void(Connection*, std::string)> onmessage_cb_;    //回调函数。在Connection::onmessage中对inputbuffer_里的数据进行处理。
 public:
     Connection(EventLoop* loop, Socket* clientsock);  //构造函数。
     ~Connection();    //析构函数。
@@ -34,6 +35,7 @@ public:
 
     void set_closecb(std::function<void(Connection*)> func);    //设置关闭fd的回调函数。
     void set_errorcb(std::function<void(Connection*)> func);    //设置fd发生错误的回调函数。
+    void set_onmessagecb(std::function<void(Connection*, std::string)> func);   //设置onmessage_cb_。
 
     void closeConnection(); //关闭客户端连接。供Channel回调。
     void errorConnection(); //客户端连接发生错误。供Channel回调。

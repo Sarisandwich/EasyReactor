@@ -36,16 +36,36 @@ int main(int argc, char* argv[])
     printf("connected.\n");
 
     char buffer[1024];
-    for(int i=0;i<10;++i)
+    for(int i=0;i<100;++i)
     {
         memset(buffer, 0, sizeof(buffer));
-        printf("input:"); scanf("%s", buffer);
-        send(sockfd, buffer, strlen(buffer), 0);
+        // printf("input:"); scanf("%s", buffer);
+        sprintf(buffer, "这是第%d个测试报文。", i);
 
+        char tmpbuf[1024];
+        memset(tmpbuf, 0, sizeof(tmpbuf));
+        int len=strlen(buffer);
+        memcpy(tmpbuf, &len, 4);
+        memcpy(tmpbuf+4, buffer, len);
+
+
+        if(send(sockfd, tmpbuf, len+4, 0)<=0)
+        {
+            printf("send() failed.\n");
+            close(sockfd);
+            return -1;
+        }
+    }
+    for(int i=0;i<100;++i)
+    {
+        int len;
+        recv(sockfd, &len, 4, 0);
+        
         memset(buffer, 0, sizeof(buffer));
-        if(recv(sockfd, buffer, sizeof(buffer), 0)<=0)
+        if(recv(sockfd, buffer, len, 0)<=0)
         {
             printf("recv() failed.\n");
+            close(sockfd);
             return -1;
         }
         printf("recv message:%s\n", buffer);

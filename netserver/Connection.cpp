@@ -54,14 +54,21 @@ void Connection::onmessage()
         {
             if(errno==EAGAIN||errno==EWOULDBLOCK)   //数据读取完毕。
             {
-                printf("recv(clientfd=%d) message: %s\n", fd(), inputbuffer_.data());
-                ///////////////////////////////////////////
-                //这个位置，对inputbuffer_里的数据经过某些处理。
-                ///////////////////////////////////////////
+                while(true)
+                {
+                    //截取报文头部。若inputbuffer_的长度小于头部记录的报文长度，则说明报文不完整，先退出。
+                    int len;
+                    memcpy(&len, inputbuffer_.data(), 4);
+                    if(inputbuffer_.size()<len+4) break;
+                    std::string message(inputbuffer_.data()+4, len);   //读取报文内容。丢弃头部。
+                    inputbuffer_.erase(0, len+4);   //清除inputbuffer_中已读取的内容。
 
-                outputbuffer_=inputbuffer_;
-                inputbuffer_.clear();
-                send(fd(), outputbuffer_.data(), outputbuffer_.size(), 0);
+                    ///////////////////////////////////////////
+                    //这个位置，对inputbuffer_里的数据经过某些处理。
+                    ///////////////////////////////////////////
+
+                    onmessage_cb_(this, message);
+                }
 
                 break;
             }
@@ -87,6 +94,11 @@ void Connection::set_closecb(std::function<void(Connection*)> func)
 void Connection::set_errorcb(std::function<void(Connection*)> func)
 {
     error_cb_=func;
+}
+
+void Connection::set_onmessagecb(std::function<void(Connection*, std::string)> func)
+{
+    onmessage_cb_=func;
 }
 
 void Connection::closeConnection()

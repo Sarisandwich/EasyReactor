@@ -25,4 +25,5 @@ public:
     void newConnection(Socket* clientsock);   //处理新客户端连接请求。
     void closeConnection(Connection* conn); //关闭客户端连接。供Connection回调。
     void errorConnection(Connection* conn); //客户端连接错误。供Connection回调。
+    void onmessage(Connection* conn, std::string message);  //处理接收缓冲区的数据。供Connection回调。
 };
