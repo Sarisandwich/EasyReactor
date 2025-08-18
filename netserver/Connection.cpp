@@ -68,6 +68,8 @@ void Connection::onmessage()
                     //这个位置，对inputbuffer_里的数据经过某些处理。
                     ///////////////////////////////////////////
 
+                    printf("message (eventfd=%d): %s\n",fd(),message.c_str());
+
                     onmessage_cb_(this, message);
                 }
 
