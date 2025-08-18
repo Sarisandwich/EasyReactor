@@ -26,4 +26,6 @@ public:
     void closeConnection(Connection* conn); //关闭客户端连接。供Connection回调。
     void errorConnection(Connection* conn); //客户端连接错误。供Connection回调。
     void onmessage(Connection* conn, std::string message);  //处理接收缓冲区的数据。供Connection回调。
+    void sendComplete(Connection* conn);    //发送数据完成之后的操作。供Connection回调。
+    void epollTimeout(EventLoop* loop);     //epollwait()超时之后的操作。供EventLoop回调。
 };

@@ -108,6 +108,11 @@ void Connection::set_onmessagecb(std::function<void(Connection*, std::string)> f
     onmessage_cb_=func;
 }
 
+void Connection::set_sendCompletecb(std::function<void(Connection*)> func)
+{
+    sendComplete_cb_=func;
+}
+
 void Connection::closeConnection()
 {
     close_cb_(this);
@@ -129,5 +134,6 @@ void Connection::writeCallback()
     if(outputbuffer_.size()==0)
     {
         clientchannel_->disable_writing();
+        sendComplete_cb_(this);
     }
 }

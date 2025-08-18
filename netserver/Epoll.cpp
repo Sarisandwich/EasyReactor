@@ -44,7 +44,7 @@ std::vector<Channel*> Epoll::loop(int timeout)
     //返回失败。
     if(infds<0) {printf("%s:%s:%d epoll_wait() failed.error:%d\n", __FILE__, __FUNCTION__, __LINE__, errno); exit(-1);}
     //超时。
-    if(infds==0) {perror("epoll_wait() timeout."); return channels;}
+    if(infds==0) {return channels;}
 
     //infds>0说明有事件发生的fd的数量。
     for(int i=0;i<infds;++i)
