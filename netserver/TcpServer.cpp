@@ -1,11 +1,21 @@
 #include"TcpServer.h"
 
 
-TcpServer::TcpServer(const std::string& ip, uint16_t port)
+TcpServer::TcpServer(const std::string& ip, uint16_t port, size_t numThread):numThread_(numThread)
 {
-    acceptor_=new Acceptor(&loop_, ip, port);
+    mainloop_=new EventLoop;
+    mainloop_->set_epollTimeoutcb(std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
+
+    acceptor_=new Acceptor(mainloop_, ip, port);
     acceptor_->set_newConnection_cb(std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
-    loop_.set_epollTimeoutcb(std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
+    
+    pool_=new ThreadPool(numThread_);
+    for(size_t i=0;i<numThread_;++i)
+    {
+        subloops_.emplace_back(new EventLoop);
+        subloops_[i]->set_epollTimeoutcb(std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
+        pool_->enqueue(std::bind(&EventLoop::run, subloops_[i]));
+    }
 }
 
 TcpServer::~TcpServer()
@@ -15,16 +25,22 @@ TcpServer::~TcpServer()
     {
         delete conn.second;
     }
+    delete mainloop_;
+    for(auto& loop:subloops_)
+    {
+        delete loop;
+    }
+    delete pool_;
 }
 
 void TcpServer::start()
 {
-    loop_.run();
+    mainloop_->run();
 }
 
 void TcpServer::newConnection(Socket* clientsock)
 {
-    Connection* conn=new Connection(&loop_, clientsock);
+    Connection* conn=new Connection(subloops_[clientsock->fd()%numThread_], clientsock);
     //printf("new connection(fd=%d, ip=%s, port=%d) ok.\n", conn->fd(), conn->ip().c_str(), conn->port());
     conn->set_closecb(std::bind(&TcpServer::closeConnection, this, std::placeholders::_1));
     conn->set_errorcb(std::bind(&TcpServer::errorConnection, this, std::placeholders::_1));

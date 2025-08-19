@@ -9,6 +9,9 @@ EventLoop::~EventLoop()
     delete ep_;
 }
 
+
+#include<syscall.h>
+#include<unistd.h>
 void EventLoop::run()
 {
     //事件循环。

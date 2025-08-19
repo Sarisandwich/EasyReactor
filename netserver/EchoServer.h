@@ -9,7 +9,7 @@ private:
     TcpServer tcpserver_;
 
 public:
-    EchoServer(const std::string &ip,const uint16_t port);
+    EchoServer(const std::string &ip,const uint16_t port, size_t numThread=std::thread::hardware_concurrency());
     ~EchoServer();
 
     void Start();   // 启动服务。

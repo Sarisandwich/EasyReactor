@@ -1,6 +1,6 @@
 #include"EchoServer.h"
 
-EchoServer::EchoServer(const std::string &ip,const uint16_t port):tcpserver_(ip,port)
+EchoServer::EchoServer(const std::string &ip,const uint16_t port, size_t numThread):tcpserver_(ip, port, numThread)
 {
     // 以下代码不是必须的，业务关心什么事件，就指定相应的回调函数。
     tcpserver_.set_newConnectioncb(std::bind(&EchoServer::HandleNewConnection, this, std::placeholders::_1));
@@ -18,10 +18,14 @@ void EchoServer::Start()
 {
     tcpserver_.start();
 }
-
+#include<syscall.h>
+#include<unistd.h>
 // 处理新客户端连接请求，在TcpServer类中回调此函数。
 void EchoServer::HandleNewConnection(Connection *conn)    
 {
+    
+    // printf("HandleNewConnection thread(%ld).\n", syscall(SYS_gettid));
+
     std::cout << "New Connection Come in." << std::endl;
 
     ///////////////////////
@@ -52,6 +56,8 @@ void EchoServer::HandleError(Connection *conn)
 // 处理客户端的请求报文，在TcpServer类中回调此函数。
 void EchoServer::HandleMessage(Connection *conn,std::string& message)     
 {
+    // printf("HandleMessage thread(%ld).\n", syscall(SYS_gettid));
+    
     /////////////////////////////
     // 在这里，将经过若干步骤的运算。
     /////////////////////////////

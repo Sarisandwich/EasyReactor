@@ -5,6 +5,7 @@
 #include"Channel.h"
 #include"Acceptor.h"
 #include"Connection.h"
+#include"ThreadPool.h"
 
 #include<map>
 
@@ -13,7 +14,12 @@
 class TcpServer
 {
 private:
-    EventLoop loop_;    //一个TcpServer可以有多个事件循环。目前单线程只启用一个。
+    EventLoop* mainloop_;    //主事件循环。
+    std::vector<EventLoop*> subloops_;  //从事件循环。
+
+    ThreadPool* pool_;  //线程池。
+    size_t numThread_;  //线程池大小。
+
     Acceptor* acceptor_;    //一个TcpServer只有一个Acceptor对象。
     std::map<int,Connection*> conns_;   //map容器储存管理Connection对象。
 private:
@@ -25,7 +31,7 @@ private:
     std::function<void(Connection*)> sendComplete_cb_;  // 回调EchoServer::HandleSendComplete()。
     std::function<void(EventLoop*)>  epollTimeout_cb_;  // 回调EchoServer::HandleTimeOut()。
 public:
-    TcpServer(const std::string& ip, uint16_t port);    //构造函数。传入ip和端口。
+    TcpServer(const std::string& ip, uint16_t port, size_t numThread);    //构造函数。传入ip和端口。
     ~TcpServer();   //析构函数。
 
     void start();   //运行事件循环。
