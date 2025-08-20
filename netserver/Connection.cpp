@@ -70,7 +70,7 @@ void Connection::onmessage()
 
                     printf("message (eventfd=%d): %s\n",fd(),message.c_str());
 
-                    onmessage_cb_(this, message);
+                    onmessage_cb_(shared_from_this(), message);
                 }
 
                 break;
@@ -95,34 +95,34 @@ void Connection::send(const char* data, size_t size)
     clientchannel_->enable_writing();
 }
 
-void Connection::set_closecb(std::function<void(Connection*)> func)
+void Connection::set_closecb(std::function<void(spConnection)> func)
 {
     close_cb_=func;
 }
 
-void Connection::set_errorcb(std::function<void(Connection*)> func)
+void Connection::set_errorcb(std::function<void(spConnection)> func)
 {
     error_cb_=func;
 }
 
-void Connection::set_onmessagecb(std::function<void(Connection*, std::string&)> func)
+void Connection::set_onmessagecb(std::function<void(spConnection, std::string&)> func)
 {
     onmessage_cb_=func;
 }
 
-void Connection::set_sendCompletecb(std::function<void(Connection*)> func)
+void Connection::set_sendCompletecb(std::function<void(spConnection)> func)
 {
     sendComplete_cb_=func;
 }
 
 void Connection::closeConnection()
 {
-    close_cb_(this);
+    close_cb_(shared_from_this());
 }
 
 void Connection::errorConnection()
 {
-    error_cb_(this);
+    error_cb_(shared_from_this());
 }
 
 void Connection::writeCallback()
@@ -136,6 +136,6 @@ void Connection::writeCallback()
     if(outputbuffer_.size()==0)
     {
         clientchannel_->disable_writing();
-        sendComplete_cb_(this);
+        sendComplete_cb_(shared_from_this());
     }
 }

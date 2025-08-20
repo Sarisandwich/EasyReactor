@@ -21,10 +21,6 @@ TcpServer::TcpServer(const std::string& ip, uint16_t port, size_t numThread):num
 TcpServer::~TcpServer()
 {
     delete acceptor_;
-    for(auto& conn:conns_)
-    {
-        delete conn.second;
-    }
     delete mainloop_;
     for(auto& loop:subloops_)
     {
@@ -40,7 +36,7 @@ void TcpServer::start()
 
 void TcpServer::newConnection(Socket* clientsock)
 {
-    Connection* conn=new Connection(subloops_[clientsock->fd()%numThread_], clientsock);
+    spConnection conn(new Connection(subloops_[clientsock->fd()%numThread_], clientsock));
     //printf("new connection(fd=%d, ip=%s, port=%d) ok.\n", conn->fd(), conn->ip().c_str(), conn->port());
     conn->set_closecb(std::bind(&TcpServer::closeConnection, this, std::placeholders::_1));
     conn->set_errorcb(std::bind(&TcpServer::errorConnection, this, std::placeholders::_1));
@@ -52,28 +48,26 @@ void TcpServer::newConnection(Socket* clientsock)
     if(newConnection_cb_) newConnection_cb_(conn);
 }
 
-void TcpServer::closeConnection(Connection* conn)
+void TcpServer::closeConnection(spConnection conn)
 {
     if(closeConnection_cb_) closeConnection_cb_(conn);
 
     conns_.erase(conn->fd());
-    delete conn;
 }
 
-void TcpServer::errorConnection(Connection* conn)
+void TcpServer::errorConnection(spConnection conn)
 {
     if(errorConnection_cb_) errorConnection_cb_(conn);
 
     conns_.erase(conn->fd());
-    delete conn;
 }
 
-void TcpServer::onmessage(Connection* conn, std::string& message)
+void TcpServer::onmessage(spConnection conn, std::string& message)
 {
     if(onmessage_cb_) onmessage_cb_(conn, message);
 }
 
-void TcpServer::sendComplete(Connection* conn)
+void TcpServer::sendComplete(spConnection conn)
 {
     if(sendComplete_cb_) sendComplete_cb_(conn);
 }
@@ -83,27 +77,27 @@ void TcpServer::epollTimeout(EventLoop* loop)
     if(epollTimeout_cb_) epollTimeout_cb_(loop);
 }
 
-void TcpServer::set_newConnectioncb(std::function<void(Connection*)> func)
+void TcpServer::set_newConnectioncb(std::function<void(spConnection)> func)
 {
     newConnection_cb_=func;
 }
 
-void TcpServer::set_closeConnectioncb(std::function<void(Connection*)> func)
+void TcpServer::set_closeConnectioncb(std::function<void(spConnection)> func)
 {
     closeConnection_cb_=func;
 }
 
-void TcpServer::set_errorConnectioncb(std::function<void(Connection*)> func)
+void TcpServer::set_errorConnectioncb(std::function<void(spConnection)> func)
 {
     errorConnection_cb_=func;
 }
 
-void TcpServer::set_onmessagecb(std::function<void(Connection*,std::string& message)> func)
+void TcpServer::set_onmessagecb(std::function<void(spConnection,std::string& message)> func)
 {
     onmessage_cb_=func;
 }
 
-void TcpServer::set_sendCompletecb(std::function<void(Connection*)> func)
+void TcpServer::set_sendCompletecb(std::function<void(spConnection)> func)
 {
     sendComplete_cb_=func;
 }

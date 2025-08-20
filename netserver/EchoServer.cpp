@@ -22,7 +22,7 @@ void EchoServer::Start()
 #include<syscall.h>
 #include<unistd.h>
 // 处理新客户端连接请求，在TcpServer类中回调此函数。
-void EchoServer::HandleNewConnection(Connection *conn)    
+void EchoServer::HandleNewConnection(spConnection conn)    
 {
     
     // printf("HandleNewConnection thread(%ld).\n", syscall(SYS_gettid));
@@ -35,7 +35,7 @@ void EchoServer::HandleNewConnection(Connection *conn)
 }
 
 // 关闭客户端的连接，在TcpServer类中回调此函数。 
-void EchoServer::HandleClose(Connection *conn)  
+void EchoServer::HandleClose(spConnection conn)  
 {
     std::cout << "EchoServer conn closed." << std::endl;
 
@@ -45,7 +45,7 @@ void EchoServer::HandleClose(Connection *conn)
 }
 
 // 客户端的连接错误，在TcpServer类中回调此函数。
-void EchoServer::HandleError(Connection *conn)  
+void EchoServer::HandleError(spConnection conn)  
 {
     std::cout << "EchoServer conn error." << std::endl;
 
@@ -55,14 +55,14 @@ void EchoServer::HandleError(Connection *conn)
 }
 
 // 处理客户端的请求报文，在TcpServer类中回调此函数。
-void EchoServer::HandleMessage(Connection *conn,std::string& message)     
+void EchoServer::HandleMessage(spConnection conn,std::string& message)     
 {
     // printf("HandleMessage thread(%ld).\n", syscall(SYS_gettid));
 
     pool_.enqueue(std::bind(&EchoServer::OnMessage, this, conn, message));
 }
 
-void EchoServer::OnMessage(Connection *conn,std::string& message)
+void EchoServer::OnMessage(spConnection conn,std::string& message)
 {
     /////////////////////////////
     // 在这里，将经过若干步骤的运算。
@@ -73,7 +73,7 @@ void EchoServer::OnMessage(Connection *conn,std::string& message)
 }
 
 // 数据发送完成后，在TcpServer类中回调此函数。
-void EchoServer::HandleSendComplete(Connection *conn)     
+void EchoServer::HandleSendComplete(spConnection conn)     
 {
     std::cout << "Message send complete." << std::endl;
 

@@ -8,8 +8,14 @@
 #include"InetAddress.h"
 #include"Buffer.h"
 
-//封装客户端通讯的Channel。
-class Connection
+#include<memory>
+
+class Connection;
+using spConnection=std::shared_ptr<Connection>;
+
+
+//封装客户端连接的Connection。
+class Connection:public std::enable_shared_from_this<Connection>
 {
 private:
     EventLoop* loop_;   //Connection对应的事件循环。外部传入。
@@ -20,10 +26,10 @@ private:
     Buffer outputbuffer_;   //发送缓冲区。
 private:
     //回调函数。
-    std::function<void(Connection*)> close_cb_; //关闭fd的回调函数。
-    std::function<void(Connection*)> error_cb_; //fd发生错误的回调函数。
-    std::function<void(Connection*, std::string&)> onmessage_cb_;    //回调函数。在Connection::onmessage中对inputbuffer_里的数据进行处理。
-    std::function<void(Connection*)> sendComplete_cb_; //回调函数。发送数据完成之后提醒TcpServer。
+    std::function<void(spConnection)> close_cb_; //关闭fd的回调函数。
+    std::function<void(spConnection)> error_cb_; //fd发生错误的回调函数。
+    std::function<void(spConnection, std::string&)> onmessage_cb_;    //回调函数。在Connection::onmessage中对inputbuffer_里的数据进行处理。
+    std::function<void(spConnection)> sendComplete_cb_; //回调函数。发送数据完成之后提醒TcpServer。
 public:
     Connection(EventLoop* loop, Socket* clientsock);  //构造函数。
     ~Connection();    //析构函数。
@@ -35,10 +41,10 @@ public:
     void onmessage();   //处理对端发送过来的报文。
     void send(const char* data, size_t size);    //发送数据。
 
-    void set_closecb(std::function<void(Connection*)> func);    //设置关闭fd的回调函数。
-    void set_errorcb(std::function<void(Connection*)> func);    //设置fd发生错误的回调函数。
-    void set_onmessagecb(std::function<void(Connection*, std::string&)> func);   //设置onmessage_cb_。
-    void set_sendCompletecb(std::function<void(Connection*)> func);    //设置sendComplete_cb_。
+    void set_closecb(std::function<void(spConnection)> func);    //设置关闭fd的回调函数。
+    void set_errorcb(std::function<void(spConnection)> func);    //设置fd发生错误的回调函数。
+    void set_onmessagecb(std::function<void(spConnection, std::string&)> func);   //设置onmessage_cb_。
+    void set_sendCompletecb(std::function<void(spConnection)> func);    //设置sendComplete_cb_。
 
     void closeConnection(); //关闭客户端连接。供Channel回调。
     void errorConnection(); //客户端连接发生错误。供Channel回调。
