@@ -7,9 +7,10 @@ class EchoServer
 {
 private:
     TcpServer tcpserver_;
+    ThreadPool pool_;
 
 public:
-    EchoServer(const std::string &ip,const uint16_t port, size_t numThread=std::thread::hardware_concurrency());
+    EchoServer(const std::string &ip,const uint16_t port, size_t workNumThread=5, size_t subNumThread=3);
     ~EchoServer();
 
     void Start();   // 启动服务。
@@ -20,4 +21,5 @@ public:
     void HandleMessage(Connection *conn,std::string& message);   // 处理客户端的请求报文，供TcpServer回调。
     void HandleSendComplete(Connection *conn);  // 数据发送完成后，供TcpServer回调。
     // void HandleTimeOut(EventLoop *loop); // epoll_wait()超时，供TcpServer回调。
+    void OnMessage(Connection *conn,std::string& message);  //处理客户端的请求报文。用于传递任务给线程池。
 };

@@ -1,6 +1,7 @@
 #include"EchoServer.h"
 
-EchoServer::EchoServer(const std::string &ip,const uint16_t port, size_t numThread):tcpserver_(ip, port, numThread)
+EchoServer::EchoServer(const std::string &ip,const uint16_t port, size_t workNumThread, size_t subNumThread)
+                    :tcpserver_(ip, port, subNumThread), pool_(workNumThread, "WORKS")
 {
     // 以下代码不是必须的，业务关心什么事件，就指定相应的回调函数。
     tcpserver_.set_newConnectioncb(std::bind(&EchoServer::HandleNewConnection, this, std::placeholders::_1));
@@ -57,10 +58,16 @@ void EchoServer::HandleError(Connection *conn)
 void EchoServer::HandleMessage(Connection *conn,std::string& message)     
 {
     // printf("HandleMessage thread(%ld).\n", syscall(SYS_gettid));
-    
+
+    pool_.enqueue(std::bind(&EchoServer::OnMessage, this, conn, message));
+}
+
+void EchoServer::OnMessage(Connection *conn,std::string& message)
+{
     /////////////////////////////
     // 在这里，将经过若干步骤的运算。
     /////////////////////////////
+    message="reply: "+message;
     
     conn->send(message.data(),message.size());   // 把临时缓冲区中的数据发送出去。
 }

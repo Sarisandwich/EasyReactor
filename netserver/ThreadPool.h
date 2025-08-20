@@ -18,9 +18,11 @@ private:
     std::condition_variable cond_;      //任务队列同步的条件变量。
     std::atomic<bool> stop_{false};     //停止标志。
 
+    std::string threadType_;    //线程类型。如"IO","WORKS".
+
     void worker();  //每个线程的主函数。
 public:
-    explicit ThreadPool(size_t numThreads=std::thread::hardware_concurrency());
+    explicit ThreadPool(size_t numThreads=std::thread::hardware_concurrency(), const std::string& threadType="WORKS");
     ~ThreadPool();
 
     ThreadPool(const ThreadPool&)=delete;

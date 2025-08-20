@@ -1,6 +1,6 @@
 #include"ThreadPool.h"
 
-ThreadPool::ThreadPool(size_t numThread)
+ThreadPool::ThreadPool(size_t numThread, const std::string& threadType): threadType_(threadType)
 {
     for(size_t i=0;i<numThread;++i)
     {
@@ -23,7 +23,7 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::worker()
 {
-    printf("create thread(%ld).\n", syscall(SYS_gettid));
+    printf("create %s thread(%ld).\n", threadType_.c_str(), syscall(SYS_gettid));
     while(!stop_.load())
     {
         std::function<void()> task;
@@ -40,6 +40,7 @@ void ThreadPool::worker()
         try
         {
             task();
+            printf("%s thread(%ld) execute task.\n", threadType_.c_str(), syscall(SYS_gettid));
         }
         catch(const std::exception& e)
         {

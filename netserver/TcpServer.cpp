@@ -9,7 +9,7 @@ TcpServer::TcpServer(const std::string& ip, uint16_t port, size_t numThread):num
     acceptor_=new Acceptor(mainloop_, ip, port);
     acceptor_->set_newConnection_cb(std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
     
-    pool_=new ThreadPool(numThread_);
+    pool_=new ThreadPool(numThread_, "IO");
     for(size_t i=0;i<numThread_;++i)
     {
         subloops_.emplace_back(new EventLoop);
