@@ -26,5 +26,6 @@ public:
 
     //void add_fd(int fd, uint32_t op);   //将fd与监听事件加入红黑树。
     void update_channel(Channel* ch);   //弃用add_fd()，改为更新channel，将channel携带的信息加入红黑树。
+    void removeChannel(Channel* ch);    //从红黑树删除channel。
     std::vector<Channel*> loop(int timeout=-1);  //运行epollwait()。返回发生的事件。
 };

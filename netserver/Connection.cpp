@@ -9,7 +9,7 @@ Connection::Connection(EventLoop* loop, Socket* clientsock):loop_(loop), clients
     clientchannel_->set_closecb(std::bind(&Connection::closeConnection, this));
     clientchannel_->set_errorcb(std::bind(&Connection::errorConnection, this));
     clientchannel_->set_writecb(std::bind(&Connection::writeCallback, this));
-    clientchannel_->use_et();
+    //clientchannel_->use_et();
     clientchannel_->enable_reading();
 }
 
@@ -91,6 +91,7 @@ void Connection::onmessage()
 
 void Connection::send(const char* data, size_t size)
 {
+    if(disconnected_.load()){return;}
     outputbuffer_.appendWithHead(data, size);
     clientchannel_->enable_writing();
 }
@@ -117,11 +118,15 @@ void Connection::set_sendCompletecb(std::function<void(spConnection)> func)
 
 void Connection::closeConnection()
 {
+    disconnected_.store(true);
+    clientchannel_->remove();
     close_cb_(shared_from_this());
 }
 
 void Connection::errorConnection()
 {
+    disconnected_.store(true);
+    clientchannel_->remove();
     error_cb_(shared_from_this());
 }
 

@@ -9,6 +9,7 @@
 #include"Buffer.h"
 
 #include<memory>
+#include<atomic>
 
 class Connection;
 using spConnection=std::shared_ptr<Connection>;
@@ -24,6 +25,8 @@ private:
 
     Buffer inputbuffer_;    //接收缓冲区。
     Buffer outputbuffer_;   //发送缓冲区。
+
+    std::atomic<bool> disconnected_{false}; //是否已断开连接。由IO线程创建或修改，由工作线程判断。
 private:
     //回调函数。
     std::function<void(spConnection)> close_cb_; //关闭fd的回调函数。

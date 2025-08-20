@@ -37,6 +37,10 @@ public:
     void disable_reading(); //epoll_wait()取消监听读事件。
     void enable_writing();  //epoll_wait()监听写事件。
     void disable_writing(); //epoll_wait()取消监听写事件。
+
+    void disable_all(); //取消所有事件。
+    void remove();  //从事件循环中删除channel。
+
     void set_inepoll(); //设置inepoll为true。
     void set_revents(uint32_t ev); //设置revents的值为ev。
 

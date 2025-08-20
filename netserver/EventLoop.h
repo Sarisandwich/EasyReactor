@@ -18,6 +18,7 @@ public:
     void run(); //运行事件循环。
 
     void update_channel(Channel* ch);   //加入或修改红黑树内容。
+    void removeChannel(Channel* ch);    //从红黑树删除channel。
 
     void set_epollTimeoutcb(std::function<void(EventLoop*)>);   //设置epollTimeout_cb_。
 };
