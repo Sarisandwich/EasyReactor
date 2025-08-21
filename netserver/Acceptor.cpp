@@ -1,7 +1,7 @@
 #include"Acceptor.h"
 
 
-Acceptor::Acceptor(EventLoop* loop, const std::string& ip, uint16_t port)
+Acceptor::Acceptor(const std::unique_ptr<EventLoop>& loop, const std::string& ip, uint16_t port)
                 :loop_(loop)
 {
     //创建服务端用于监听的listenfd。

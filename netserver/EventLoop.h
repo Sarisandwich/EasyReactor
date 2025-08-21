@@ -1,6 +1,7 @@
 #pragma once
 
 #include"Epoll.h"
+#include<memory>
 
 class Channel;
 class Epoll;
@@ -9,7 +10,7 @@ class Epoll;
 class EventLoop
 {
 private:
-    Epoll* ep_; //每个事件循环只对应一个ep。
+    std::unique_ptr<Epoll> ep_; //每个事件循环只对应一个ep。
     std::function<void(EventLoop*)> epollTimeout_cb_;   //回调函数。epoll_wait()超时的处理。
 public:
     EventLoop();    //构造函数。创建ep。

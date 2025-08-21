@@ -1,12 +1,12 @@
 #include"EventLoop.h"
 
 
-EventLoop::EventLoop():ep_(new Epoll)
+EventLoop::EventLoop():ep_(std::make_unique<Epoll>())
 {}
 
 EventLoop::~EventLoop()
 {
-    delete ep_;
+
 }
 
 

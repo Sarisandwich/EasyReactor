@@ -14,8 +14,8 @@
 class TcpServer
 {
 private:
-    EventLoop* mainloop_;    //主事件循环。
-    std::vector<EventLoop*> subloops_;  //从事件循环。
+    std::unique_ptr<EventLoop> mainloop_;    //主事件循环。
+    std::vector<std::unique_ptr<EventLoop>> subloops_;  //从事件循环。
 
     ThreadPool* pool_;  //线程池。
     size_t numThread_;  //线程池大小。
