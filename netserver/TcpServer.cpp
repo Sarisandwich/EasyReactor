@@ -34,9 +34,9 @@ void TcpServer::start()
     mainloop_->run();
 }
 
-void TcpServer::newConnection(Socket* clientsock)
+void TcpServer::newConnection(std::unique_ptr<Socket> clientsock)
 {
-    spConnection conn(new Connection(subloops_[clientsock->fd()%numThread_], clientsock));
+    spConnection conn=std::make_shared<Connection>(subloops_[clientsock->fd()%numThread_], std::move(clientsock));
     //printf("new connection(fd=%d, ip=%s, port=%d) ok.\n", conn->fd(), conn->ip().c_str(), conn->port());
     conn->set_closecb(std::bind(&TcpServer::closeConnection, this, std::placeholders::_1));
     conn->set_errorcb(std::bind(&TcpServer::errorConnection, this, std::placeholders::_1));

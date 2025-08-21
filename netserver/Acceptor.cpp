@@ -1,10 +1,11 @@
 #include"Acceptor.h"
 
 
-Acceptor::Acceptor(EventLoop* loop, const std::string& ip, uint16_t port):loop_(loop)
+Acceptor::Acceptor(EventLoop* loop, const std::string& ip, uint16_t port)
+                :loop_(loop)
 {
     //创建服务端用于监听的listenfd。
-    servsock_=new Socket(create_nonblocking_fd());
+    servsock_=std::make_unique<Socket>(create_nonblocking_fd());
 
     //设置listenfd的属性。
     servsock_->set_reuseaddr();
@@ -24,27 +25,24 @@ Acceptor::Acceptor(EventLoop* loop, const std::string& ip, uint16_t port):loop_(
     //EventLoop loop;
 
     //创建服务端的channel，让channel里的listenfd监听读事件，将信息加入红黑树。
-    acceptchannel_=new Channel(loop_, servsock_->fd());
+    acceptchannel_=std::make_unique<Channel>(loop_, servsock_->fd());
     acceptchannel_->set_readcb(std::bind(&Acceptor::newConnection, this));
     acceptchannel_->enable_reading();
 }
 
 Acceptor::~Acceptor()
-{
-    delete servsock_;
-    delete acceptchannel_;
-}
+{}
 
 void Acceptor::newConnection()
 {
     InetAddress clientaddr;
-    Socket* clientsock=new Socket(servsock_->accept(clientaddr));
+    std::unique_ptr<Socket> clientsock=std::make_unique<Socket>(servsock_->accept(clientaddr));
     clientsock->set_ipport(clientaddr.ip(), clientaddr.port());
 
-    newConnection_cb_(clientsock);
+    newConnection_cb_(std::move(clientsock));
 }
 
-void Acceptor::set_newConnection_cb(std::function<void(Socket*)> func)
+void Acceptor::set_newConnection_cb(std::function<void(std::unique_ptr<Socket>)> func)
 {
     newConnection_cb_=func;
 }

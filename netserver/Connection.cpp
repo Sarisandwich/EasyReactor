@@ -1,10 +1,10 @@
 #include"Connection.h"
 
 
-Connection::Connection(EventLoop* loop, Socket* clientsock):loop_(loop), clientsock_(clientsock)
+Connection::Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock):loop_(loop), clientsock_(std::move(clientsock))
 {
     //为新客户端连接准备读事件，添加到红黑树。
-    clientchannel_=new Channel(loop_, clientsock_->fd());
+    clientchannel_=std::make_unique<Channel>(loop_, clientsock_->fd());
     clientchannel_->set_readcb(std::bind(&Connection::onmessage, this));
     clientchannel_->set_closecb(std::bind(&Connection::closeConnection, this));
     clientchannel_->set_errorcb(std::bind(&Connection::errorConnection, this));
@@ -15,8 +15,7 @@ Connection::Connection(EventLoop* loop, Socket* clientsock):loop_(loop), clients
 
 Connection::~Connection()
 {
-    delete clientsock_;
-    delete clientchannel_;
+
     printf("Connection 被析构。\n");
 }
 
