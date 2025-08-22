@@ -29,4 +29,5 @@ public:
     ThreadPool& operator=(const ThreadPool&)=delete;
 
     void enqueue(std::function<void()> task);
+    size_t size();  //返回线程池大小。
 };

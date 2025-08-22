@@ -58,3 +58,8 @@ void ThreadPool::enqueue(std::function<void()> task)
     }
     cond_.notify_one();
 }
+
+size_t ThreadPool::size()
+{
+    return threads_.size();
+}

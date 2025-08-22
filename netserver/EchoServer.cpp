@@ -58,8 +58,14 @@ void EchoServer::HandleError(spConnection conn)
 void EchoServer::HandleMessage(spConnection conn,std::string& message)     
 {
     // printf("HandleMessage thread(%ld).\n", syscall(SYS_gettid));
-
-    pool_.enqueue(std::bind(&EchoServer::OnMessage, this, conn, message));
+    if(pool_.size()==0)
+    {
+        OnMessage(conn, message);
+    }
+    else
+    {
+        pool_.enqueue(std::bind(&EchoServer::OnMessage, this, conn, message));
+    }
 }
 
 void EchoServer::OnMessage(spConnection conn,std::string& message)
