@@ -1,7 +1,7 @@
 #include"Connection.h"
 
 
-Connection::Connection(const std::unique_ptr<EventLoop>& loop, std::unique_ptr<Socket> clientsock):loop_(loop), clientsock_(std::move(clientsock))
+Connection::Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock):loop_(loop), clientsock_(std::move(clientsock))
 {
     //为新客户端连接准备读事件，添加到红黑树。
     clientchannel_=std::make_unique<Channel>(loop_, clientsock_->fd());

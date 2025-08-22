@@ -19,7 +19,7 @@ using spConnection=std::shared_ptr<Connection>;
 class Connection:public std::enable_shared_from_this<Connection>
 {
 private:
-    const std::unique_ptr<EventLoop>& loop_;   //Connection对应的事件循环。外部传入。
+    EventLoop* loop_;   //Connection对应的事件循环。外部传入。
     std::unique_ptr<Socket> clientsock_;  //与客户端通讯的socket。外部传入。虽然是外部传入，但逻辑上仍属于类内成员，需要由Connection析构释放。
     std::unique_ptr<Channel> clientchannel_;    //Connection对应的channel。构造函数创建。类内成员。
 
@@ -34,7 +34,7 @@ private:
     std::function<void(spConnection, std::string&)> onmessage_cb_;    //回调函数。在Connection::onmessage中对inputbuffer_里的数据进行处理。
     std::function<void(spConnection)> sendComplete_cb_; //回调函数。发送数据完成之后提醒TcpServer。
 public:
-    Connection(const std::unique_ptr<EventLoop>& loop, std::unique_ptr<Socket> clientsock);  //构造函数。
+    Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock);  //构造函数。
     ~Connection();    //析构函数。
 
     int fd() const; //返回fd。

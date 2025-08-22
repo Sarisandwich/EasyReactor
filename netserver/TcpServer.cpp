@@ -6,7 +6,7 @@ TcpServer::TcpServer(const std::string& ip, uint16_t port, size_t numThread):num
     mainloop_=std::make_unique<EventLoop>();
     mainloop_->set_epollTimeoutcb(std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
 
-    acceptor_=std::make_unique<Acceptor>(mainloop_, ip, port);
+    acceptor_=std::make_unique<Acceptor>(mainloop_.get(), ip, port);
     acceptor_->set_newConnection_cb(std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
     
     pool_=new ThreadPool(numThread_, "IO");
@@ -32,7 +32,7 @@ void TcpServer::start()
 
 void TcpServer::newConnection(std::unique_ptr<Socket> clientsock)
 {
-    spConnection conn=std::make_shared<Connection>(subloops_[clientsock->fd()%numThread_], std::move(clientsock));
+    spConnection conn=std::make_shared<Connection>(subloops_[clientsock->fd()%numThread_].get(), std::move(clientsock));
     //printf("new connection(fd=%d, ip=%s, port=%d) ok.\n", conn->fd(), conn->ip().c_str(), conn->port());
     conn->set_closecb(std::bind(&TcpServer::closeConnection, this, std::placeholders::_1));
     conn->set_errorcb(std::bind(&TcpServer::errorConnection, this, std::placeholders::_1));
