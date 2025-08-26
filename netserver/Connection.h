@@ -43,6 +43,7 @@ public:
 
     void onmessage();   //处理对端发送过来的报文。
     void send(const char* data, size_t size);    //发送数据。
+    void sendInLoop(const char* data, size_t size); //交给IO线程（事件循环）去发送数据。
 
     void set_closecb(std::function<void(spConnection)> func);    //设置关闭fd的回调函数。
     void set_errorcb(std::function<void(spConnection)> func);    //设置fd发生错误的回调函数。

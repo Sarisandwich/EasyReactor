@@ -91,6 +91,24 @@ void Connection::onmessage()
 void Connection::send(const char* data, size_t size)
 {
     if(disconnected_.load()){return;}
+
+    if(loop_->isinLoopthread()) //如果当前线程是IO线程，直接执行发送数据的操作。
+    {
+        printf("send()在事件循环的线程中。\n");
+        sendInLoop(data, size);
+    }
+    else    //如果当前线程不是IO线程，把发送数据的操作交给IO线程去执行。
+    {
+        printf("send()不在事件循环的线程中。\n");
+        std::string msg(data, size);
+        loop_->enqueueLoop([this, msg](){
+            sendInLoop(msg.data(), msg.size());
+        });
+    }
+}
+
+void Connection::sendInLoop(const char* data, size_t size)
+{
     outputbuffer_.appendWithHead(data, size);
     clientchannel_->enable_writing();
 }

@@ -84,7 +84,7 @@ void Channel::handle_events()
     {
         close_cb_();
     }
-    else if(revents_ & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读。
+    else if(revents_ & (EPOLLIN|EPOLLPRI))    //读事件。缓冲区有数据可读/唤醒事件循环。
     {
         read_cb_();
     }

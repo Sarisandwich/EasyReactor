@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
     }
     
     // TcpServer tcpserver(argv[1], atoi(argv[2]));
-    EchoServer echoserver(argv[1], atoi(argv[2]), 5, 3);
+    EchoServer echoserver(argv[1], atoi(argv[2]), 3, 3);
 
     //运行事件循环。
     // tcpserver.start();
