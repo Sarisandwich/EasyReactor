@@ -13,8 +13,8 @@ int createTimerfd(int sec=5)
     return tfd;
 }
 
-EventLoop::EventLoop()
-            :ep_(std::make_unique<Epoll>()), 
+EventLoop::EventLoop(bool ismainloop)
+            :ep_(std::make_unique<Epoll>()), ismainloop_(ismainloop),
             wakeup_fd_(eventfd(0, EFD_NONBLOCK)), timerfd_(createTimerfd()),
             wakeChannel_(std::make_unique<Channel>(this, wakeup_fd_)),
             timerChannel_(std::make_unique<Channel>(this, timerfd_))
@@ -122,5 +122,12 @@ void EventLoop::handleTimer()
     timeout.it_value.tv_nsec=0;
     timerfd_settime(timerfd_, 0, &timeout, 0);
 
-    printf("闹钟响了。\n");
+    if(ismainloop_)
+    {
+        printf("主事件循环闹钟响了。\n");
+    }
+    else
+    {
+        printf("从事件循环闹钟响了。\n");
+    }
 }

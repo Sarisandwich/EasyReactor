@@ -20,6 +20,7 @@ private:
     std::function<void(EventLoop*)> epollTimeout_cb_;   //回调函数。epoll_wait()超时的处理。
 
     pid_t threadid_;    //事件循环所在线程的id。
+    bool ismainloop_;   //是否为主事件循环。
 
     int wakeup_fd_; //用于唤醒事件循环线程的fd。
     std::queue<std::function<void()>> taskqueue_;   //事件循环线程被eventfd唤醒后，执行的任务队列。
@@ -29,7 +30,7 @@ private:
     int timerfd_;   //定时器的fd。
     std::unique_ptr<Channel> timerChannel_; //定时器的Channel。
 public:
-    EventLoop();    //构造函数。创建ep。
+    EventLoop(bool ismainloop);    //构造函数。创建ep。
     ~EventLoop();    //析构函数。销毁ep。
 
     void run(); //运行事件循环。

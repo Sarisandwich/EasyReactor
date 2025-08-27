@@ -3,7 +3,7 @@
 
 TcpServer::TcpServer(const std::string& ip, uint16_t port, size_t numThread):numThread_(numThread)
 {
-    mainloop_=std::make_unique<EventLoop>();
+    mainloop_=std::make_unique<EventLoop>(true);
     mainloop_->set_epollTimeoutcb(std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
 
     acceptor_=std::make_unique<Acceptor>(mainloop_.get(), ip, port);
@@ -12,7 +12,7 @@ TcpServer::TcpServer(const std::string& ip, uint16_t port, size_t numThread):num
     pool_=new ThreadPool(numThread_, "IO");
     for(size_t i=0;i<numThread_;++i)
     {
-        subloops_.emplace_back(new EventLoop);
+        subloops_.emplace_back(std::make_unique<EventLoop>(false));
         subloops_[i]->set_epollTimeoutcb(std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
         pool_->enqueue(std::bind(&EventLoop::run, subloops_[i].get()));
     }
