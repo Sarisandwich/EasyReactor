@@ -69,6 +69,9 @@ void Connection::onmessage()
 
                     printf("message (eventfd=%d): %s\n",fd(),message.c_str());
 
+                    lastTime_=TimeStamp::now(); //更新时间戳。
+                    std::cout<<"lastTime="<<lastTime_.tostring()<<std::endl;
+
                     onmessage_cb_(shared_from_this(), message);
                 }
 

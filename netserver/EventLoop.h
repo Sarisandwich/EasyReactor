@@ -7,6 +7,7 @@
 #include<queue>
 #include<mutex>
 #include<sys/eventfd.h>
+#include<sys/timerfd.h>
 
 class Channel;
 class Epoll;
@@ -24,6 +25,9 @@ private:
     std::queue<std::function<void()>> taskqueue_;   //事件循环线程被eventfd唤醒后，执行的任务队列。
     std::mutex mtx_;    //任务队列的互斥锁。
     std::unique_ptr<Channel> wakeChannel_;  //eventfd的channel。
+
+    int timerfd_;   //定时器的fd。
+    std::unique_ptr<Channel> timerChannel_; //定时器的Channel。
 public:
     EventLoop();    //构造函数。创建ep。
     ~EventLoop();    //析构函数。销毁ep。
@@ -40,4 +44,5 @@ public:
     void enqueueLoop(std::function<void()> func); //把任务添加到队列中。
     void wakeup();  //用eventfd唤醒事件循环线程。
     void handleWakeup();    //事件循环线程被唤醒后执行的操作。
+    void handleTimer();     //定时器时间到了之后执行的操作。
 };

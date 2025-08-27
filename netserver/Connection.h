@@ -7,6 +7,7 @@
 #include"Channel.h"
 #include"InetAddress.h"
 #include"Buffer.h"
+#include"TimeStamp.h"
 
 #include<memory>
 #include<atomic>
@@ -25,6 +26,8 @@ private:
 
     Buffer inputbuffer_;    //接收缓冲区。
     Buffer outputbuffer_;   //发送缓冲区。
+
+    TimeStamp lastTime_;    //时间戳。创建Connection对象时为当前时间。每收到一个报文，把时间戳更新为当前时间。
 
     std::atomic<bool> disconnected_{false}; //是否已断开连接。由IO线程创建或修改，由工作线程判断。
 private:

@@ -5,11 +5,11 @@ client: client.cpp
 
 echoserver: echoserver.cpp InetAddress.cpp Socket.cpp Epoll.cpp \
 	Channel.cpp EventLoop.cpp TcpServer.cpp Acceptor.cpp \
-	Connection.cpp Buffer.cpp EchoServer.cpp \
+	Connection.cpp Buffer.cpp EchoServer.cpp TimeStamp.cpp \
 	ThreadPool.cpp -lpthread
 	g++ -g -o echoserver echoserver.cpp InetAddress.cpp Socket.cpp \
 	Epoll.cpp Channel.cpp EventLoop.cpp TcpServer.cpp Acceptor.cpp \
-	Connection.cpp Buffer.cpp EchoServer.cpp \
+	Connection.cpp Buffer.cpp EchoServer.cpp TimeStamp.cpp \
 	ThreadPool.cpp -lpthread
 
 clean:

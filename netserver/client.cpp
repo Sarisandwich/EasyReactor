@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     printf("connected.\n");
 
     char buffer[1024];
-    for(int i=0;i<2;++i)
+    for(int i=0;i<10;++i)
     {
         memset(buffer, 0, sizeof(buffer));
         // printf("input:"); scanf("%s", buffer);
@@ -55,10 +55,10 @@ int main(int argc, char* argv[])
             close(sockfd);
             return -1;
         }
-    }
-    for(int i=0;i<2;++i)
-    {
-        int len;
+    // }
+    // for(int i=0;i<2;++i)
+    // {
+        // int len;
         recv(sockfd, &len, 4, 0);
         
         memset(buffer, 0, sizeof(buffer));
@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
             return -1;
         }
         printf("recv message:%s\n", buffer);
+        sleep(1);
     }
     sleep(100);
     return 0;
