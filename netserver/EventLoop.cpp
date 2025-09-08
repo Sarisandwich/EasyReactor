@@ -159,3 +159,11 @@ void EventLoop::newConnection(spConnection conn)
         conns_[conn->fd()]=conn;
     }
 }
+
+void EventLoop::removeConnection(int fd)
+{
+    {
+        std::lock_guard<std::mutex> lock(cmtx_);
+        conns_.erase(fd);
+    }
+}

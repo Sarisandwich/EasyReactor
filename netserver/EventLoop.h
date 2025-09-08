@@ -57,4 +57,5 @@ public:
     void handleTimer();     //定时器时间到了之后执行的操作。
 
     void newConnection(spConnection conn);  //把Connection存放到conns_容器中。
+    void removeConnection(int fd);  //把conns_里的某个Connection对象清除。主要供给TcpServer::closeConnection使用。
 };

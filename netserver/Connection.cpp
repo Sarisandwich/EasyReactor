@@ -169,3 +169,8 @@ bool Connection::timeout(time_t now, int sec, int usec)
 {
     return now-lastTime_.toint()>sec;
 }
+
+EventLoop* Connection::getLoop()
+{
+    return loop_;
+}

@@ -57,6 +57,8 @@ void TcpServer::closeConnection(spConnection conn)
         std::lock_guard<std::mutex> lock(mtx_);
         conns_.erase(conn->fd());
     }
+    // 通知所在的 EventLoop 删除它管理的 connection。
+    conn->getLoop()->removeConnection(conn->fd());
 }
 
 void TcpServer::errorConnection(spConnection conn)

@@ -60,4 +60,6 @@ public:
     void writeCallback();   //处理写事件。供Channel回调。
 
     bool timeout(time_t now, int sec=10, int usec=0);   //是否超时。now为当前时间，sec为整数秒。
+
+    EventLoop* getLoop();   //返回Connection对应的事件循环。
 };
