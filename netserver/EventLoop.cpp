@@ -140,7 +140,10 @@ void EventLoop::handleTimer()
             printf(" %d", it->first);
             if (it->second->timeout(now, 10)) {
                 timer_cb_(it->first);   //在TcpServer删除超时的conn。
-                it=conns_.erase(it);  //在EventLoop删除超时的conn。erase 返回下一个有效迭代器。
+                {
+                    std::lock_guard<std::mutex> lock(cmtx_);
+                    it=conns_.erase(it);  //在EventLoop删除超时的conn。erase 返回下一个有效迭代器。
+                }
             } else {
                 ++it;
             }
@@ -151,5 +154,8 @@ void EventLoop::handleTimer()
 
 void EventLoop::newConnection(spConnection conn)
 {
-    conns_[conn->fd()]=conn;
+    {
+        std::lock_guard<std::mutex> lock(cmtx_);
+        conns_[conn->fd()]=conn;
+    }
 }

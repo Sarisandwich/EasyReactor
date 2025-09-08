@@ -36,6 +36,7 @@ private:
     std::unique_ptr<Channel> timerChannel_; //定时器的Channel。
 
     std::map<int, spConnection> conns_; //存放运行在该事件循环上的Connection。
+    std::mutex cmtx_;   //conns_的互斥锁。
 public:
     EventLoop(bool ismainloop);    //构造函数。创建ep。
     ~EventLoop();    //析构函数。销毁ep。

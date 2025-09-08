@@ -40,7 +40,10 @@ void TcpServer::newConnection(std::unique_ptr<Socket> clientsock)
     conn->set_onmessagecb(std::bind(&TcpServer::onmessage, this, std::placeholders::_1, std::placeholders::_2));
     conn->set_sendCompletecb(std::bind(&TcpServer::sendComplete, this, std::placeholders::_1));
 
-    conns_[conn->fd()]=conn;    //conn存放到TcpServer的conns_容器。
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        conns_[conn->fd()]=conn;    //conn存放到TcpServer的conns_容器。
+    }
     subloops_[conn->fd()%numThread_]->newConnection(conn);  //conn存放到EventLoop的conns_容器。
 
     if(newConnection_cb_) newConnection_cb_(conn);
@@ -49,15 +52,21 @@ void TcpServer::newConnection(std::unique_ptr<Socket> clientsock)
 void TcpServer::closeConnection(spConnection conn)
 {
     if(closeConnection_cb_) closeConnection_cb_(conn);
-
-    conns_.erase(conn->fd());
+    
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        conns_.erase(conn->fd());
+    }
 }
 
 void TcpServer::errorConnection(spConnection conn)
 {
     if(errorConnection_cb_) errorConnection_cb_(conn);
 
-    conns_.erase(conn->fd());
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        conns_.erase(conn->fd());
+    }
 }
 
 void TcpServer::onmessage(spConnection conn, std::string& message)
@@ -77,7 +86,10 @@ void TcpServer::epollTimeout(EventLoop* loop)
 
 void TcpServer::removeConn(int fd)
 {
-    conns_.erase(fd);
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        conns_.erase(fd);
+    }
 }
 
 void TcpServer::set_newConnectioncb(std::function<void(spConnection)> func)

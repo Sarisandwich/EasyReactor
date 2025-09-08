@@ -22,6 +22,8 @@ private:
 
     std::unique_ptr<Acceptor> acceptor_;    //一个TcpServer只有一个Acceptor对象。
     std::map<int,spConnection> conns_;   //map容器储存管理Connection对象。
+
+    std::mutex mtx_;    //用于维护conns_的互斥锁。
 private:
     //回调函数。
     std::function<void(spConnection)> newConnection_cb_; // 回调EchoServer::HandleNewConnection()。
