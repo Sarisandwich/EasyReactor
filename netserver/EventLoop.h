@@ -32,13 +32,15 @@ private:
     std::mutex mtx_;    //任务队列的互斥锁。
     std::unique_ptr<Channel> wakeChannel_;  //eventfd的channel。
 
+    int timetvl_;   //闹钟时间间隔。单位：秒。
+    int timeout_;   //Connection对象超时的时间。单位：秒。
     int timerfd_;   //定时器的fd。
     std::unique_ptr<Channel> timerChannel_; //定时器的Channel。
 
     std::map<int, spConnection> conns_; //存放运行在该事件循环上的Connection。
     std::mutex cmtx_;   //conns_的互斥锁。
 public:
-    EventLoop(bool ismainloop);    //构造函数。创建ep。
+    EventLoop(bool ismainloop, int timetvl=30, int timeout=80);    //构造函数。创建ep。
     ~EventLoop();    //析构函数。销毁ep。
 
     void run(); //运行事件循环。

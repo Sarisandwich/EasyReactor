@@ -1,6 +1,6 @@
 #include"EventLoop.h"
 
-int createTimerfd(int sec=5)
+int createTimerfd(int sec=30)
 {
     int tfd=timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC|TFD_NONBLOCK);
     struct itimerspec timeout;  //定时时间的数据。
@@ -13,9 +13,10 @@ int createTimerfd(int sec=5)
     return tfd;
 }
 
-EventLoop::EventLoop(bool ismainloop)
-            :ep_(std::make_unique<Epoll>()), ismainloop_(ismainloop),
-            wakeup_fd_(eventfd(0, EFD_NONBLOCK)), timerfd_(createTimerfd()),
+EventLoop::EventLoop(bool ismainloop, int timetvl, int timeout)
+            :timetvl_(timetvl), timeout_(timeout),
+            ep_(std::make_unique<Epoll>()), ismainloop_(ismainloop),
+            wakeup_fd_(eventfd(0, EFD_NONBLOCK)), timerfd_(createTimerfd(timeout_)),
             wakeChannel_(std::make_unique<Channel>(this, wakeup_fd_)),
             timerChannel_(std::make_unique<Channel>(this, timerfd_))
 {
@@ -123,7 +124,7 @@ void EventLoop::handleTimer()
     //重新设定计时器。
     struct itimerspec timeout;
     memset(&timeout, 0, sizeof(itimerspec));
-    timeout.it_value.tv_sec=5;
+    timeout.it_value.tv_sec=timetvl_;
     timeout.it_value.tv_nsec=0;
     timerfd_settime(timerfd_, 0, &timeout, 0);
 
@@ -138,7 +139,7 @@ void EventLoop::handleTimer()
         time_t now=time(0);
         for (auto it = conns_.begin(); it != conns_.end(); ) {
             printf(" %d", it->first);
-            if (it->second->timeout(now, 10)) {
+            if (it->second->timeout(now, timeout_)) {
                 timer_cb_(it->first);   //在TcpServer删除超时的conn。
                 {
                     std::lock_guard<std::mutex> lock(cmtx_);
