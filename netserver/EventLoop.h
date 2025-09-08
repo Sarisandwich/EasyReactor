@@ -1,16 +1,20 @@
 #pragma once
 
 #include"Epoll.h"
+#include"Connection.h"
 #include<memory>
 #include<syscall.h>
 #include<unistd.h>
 #include<queue>
+#include<map>
 #include<mutex>
 #include<sys/eventfd.h>
 #include<sys/timerfd.h>
 
+class Connection;
 class Channel;
 class Epoll;
+using spConnection=std::shared_ptr<Connection>;
 
 //事件循环类。
 class EventLoop
@@ -18,6 +22,7 @@ class EventLoop
 private:
     std::unique_ptr<Epoll> ep_; //每个事件循环只对应一个ep。
     std::function<void(EventLoop*)> epollTimeout_cb_;   //回调函数。epoll_wait()超时的处理。
+    std::function<void(int)> timer_cb_; //回调函数。定时器超时的处理handletimer()。 
 
     pid_t threadid_;    //事件循环所在线程的id。
     bool ismainloop_;   //是否为主事件循环。
@@ -29,6 +34,8 @@ private:
 
     int timerfd_;   //定时器的fd。
     std::unique_ptr<Channel> timerChannel_; //定时器的Channel。
+
+    std::map<int, spConnection> conns_; //存放运行在该事件循环上的Connection。
 public:
     EventLoop(bool ismainloop);    //构造函数。创建ep。
     ~EventLoop();    //析构函数。销毁ep。
@@ -39,6 +46,7 @@ public:
     void removeChannel(Channel* ch);    //从红黑树删除channel。
 
     void set_epollTimeoutcb(std::function<void(EventLoop*)>);   //设置epollTimeout_cb_。
+    void set_timercb(std::function<void(int)>); //设置timer_cb_。
 
     bool isinLoopthread();    //判断当前线程是否为事件循环线程。
 
@@ -46,4 +54,6 @@ public:
     void wakeup();  //用eventfd唤醒事件循环线程。
     void handleWakeup();    //事件循环线程被唤醒后执行的操作。
     void handleTimer();     //定时器时间到了之后执行的操作。
+
+    void newConnection(spConnection conn);  //把Connection存放到conns_容器中。
 };

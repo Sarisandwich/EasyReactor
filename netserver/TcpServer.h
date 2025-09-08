@@ -42,6 +42,7 @@ public:
     void onmessage(spConnection conn, std::string& message);  //处理接收缓冲区的数据。供Connection回调。
     void sendComplete(spConnection conn);    //发送数据完成之后的操作。供Connection回调。
     void epollTimeout(EventLoop* loop);     //epollwait()超时之后的操作。供EventLoop回调。
+    void removeConn(int fd);    //定时器超时之后删除conn连接。供EventLoop回调。
 
     //设置回调函数。
     void set_newConnectioncb(std::function<void(spConnection)> func);

@@ -13,6 +13,8 @@
 #include<atomic>
 
 class Connection;
+class Channel;
+class EventLoop;
 using spConnection=std::shared_ptr<Connection>;
 
 
@@ -56,4 +58,6 @@ public:
     void closeConnection(); //关闭客户端连接。供Channel回调。
     void errorConnection(); //客户端连接发生错误。供Channel回调。
     void writeCallback();   //处理写事件。供Channel回调。
+
+    bool timeout(time_t now, int sec=10, int usec=0);   //是否超时。now为当前时间，sec为整数秒。
 };

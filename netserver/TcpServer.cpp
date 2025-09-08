@@ -14,6 +14,7 @@ TcpServer::TcpServer(const std::string& ip, uint16_t port, size_t numThread):num
     {
         subloops_.emplace_back(std::make_unique<EventLoop>(false));
         subloops_[i]->set_epollTimeoutcb(std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
+        subloops_[i]->set_timercb(std::bind(&TcpServer::removeConn, this, std::placeholders::_1));
         pool_->enqueue(std::bind(&EventLoop::run, subloops_[i].get()));
     }
 }
@@ -39,7 +40,8 @@ void TcpServer::newConnection(std::unique_ptr<Socket> clientsock)
     conn->set_onmessagecb(std::bind(&TcpServer::onmessage, this, std::placeholders::_1, std::placeholders::_2));
     conn->set_sendCompletecb(std::bind(&TcpServer::sendComplete, this, std::placeholders::_1));
 
-    conns_[conn->fd()]=conn;
+    conns_[conn->fd()]=conn;    //conn存放到TcpServer的conns_容器。
+    subloops_[conn->fd()%numThread_]->newConnection(conn);  //conn存放到EventLoop的conns_容器。
 
     if(newConnection_cb_) newConnection_cb_(conn);
 }
@@ -71,6 +73,11 @@ void TcpServer::sendComplete(spConnection conn)
 void TcpServer::epollTimeout(EventLoop* loop)
 {
     if(epollTimeout_cb_) epollTimeout_cb_(loop);
+}
+
+void TcpServer::removeConn(int fd)
+{
+    conns_.erase(fd);
 }
 
 void TcpServer::set_newConnectioncb(std::function<void(spConnection)> func)

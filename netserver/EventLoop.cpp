@@ -70,6 +70,11 @@ void EventLoop::set_epollTimeoutcb(std::function<void(EventLoop*)> func)
     epollTimeout_cb_=func;
 }
 
+void EventLoop::set_timercb(std::function<void(int)> func)
+{
+    timer_cb_=func;
+}
+
 bool EventLoop::isinLoopthread()
 {
     return threadid_==syscall(SYS_gettid);
@@ -124,10 +129,27 @@ void EventLoop::handleTimer()
 
     if(ismainloop_)
     {
-        printf("主事件循环闹钟响了。\n");
+        // printf("主事件循环闹钟响了。\n");
     }
     else
     {
-        printf("从事件循环闹钟响了。\n");
+        // printf("从事件循环闹钟响了。\n");
+        printf("EventLoop::handletimer() thread is %ld fd", syscall(SYS_gettid));
+        time_t now=time(0);
+        for (auto it = conns_.begin(); it != conns_.end(); ) {
+            printf(" %d", it->first);
+            if (it->second->timeout(now, 10)) {
+                timer_cb_(it->first);   //在TcpServer删除超时的conn。
+                it=conns_.erase(it);  //在EventLoop删除超时的conn。erase 返回下一个有效迭代器。
+            } else {
+                ++it;
+            }
+        }
+        printf("\n");
     }
+}
+
+void EventLoop::newConnection(spConnection conn)
+{
+    conns_[conn->fd()]=conn;
 }

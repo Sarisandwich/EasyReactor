@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
             return -1;
         }
         printf("recv message:%s\n", buffer);
-        sleep(1);
+        sleep(20);
     }
     sleep(100);
     return 0;

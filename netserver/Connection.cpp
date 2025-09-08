@@ -70,7 +70,7 @@ void Connection::onmessage()
                     printf("message (eventfd=%d): %s\n",fd(),message.c_str());
 
                     lastTime_=TimeStamp::now(); //更新时间戳。
-                    std::cout<<"lastTime="<<lastTime_.tostring()<<std::endl;
+                    // std::cout<<"lastTime="<<lastTime_.tostring()<<std::endl;
 
                     onmessage_cb_(shared_from_this(), message);
                 }
@@ -97,12 +97,12 @@ void Connection::send(const char* data, size_t size)
 
     if(loop_->isinLoopthread()) //如果当前线程是IO线程，直接执行发送数据的操作。
     {
-        printf("send()在事件循环的线程中。\n");
+        // printf("send()在事件循环的线程中。\n");
         sendInLoop(data, size);
     }
     else    //如果当前线程不是IO线程，把发送数据的操作交给IO线程去执行。
     {
-        printf("send()不在事件循环的线程中。\n");
+        // printf("send()不在事件循环的线程中。\n");
         std::string msg(data, size);
         loop_->enqueueLoop([this, msg](){
             sendInLoop(msg.data(), msg.size());
@@ -163,4 +163,9 @@ void Connection::writeCallback()
         clientchannel_->disable_writing();
         sendComplete_cb_(shared_from_this());
     }
+}
+
+bool Connection::timeout(time_t now, int sec, int usec)
+{
+    return now-lastTime_.toint()>sec;
 }
