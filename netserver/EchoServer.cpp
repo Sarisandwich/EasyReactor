@@ -27,7 +27,8 @@ void EchoServer::HandleNewConnection(spConnection conn)
     
     // printf("HandleNewConnection thread(%ld).\n", syscall(SYS_gettid));
 
-    std::cout << "New Connection Come in." << std::endl;
+    // std::cout << "New Connection Come in." << std::endl;
+    printf("New Connection(fd=%d, ip=%s, port=%d) ok.\n", conn->fd(), conn->ip().c_str(), conn->port());
 
     ///////////////////////
     //根据业务需求，拓展代码。
@@ -37,7 +38,8 @@ void EchoServer::HandleNewConnection(spConnection conn)
 // 关闭客户端的连接，在TcpServer类中回调此函数。 
 void EchoServer::HandleClose(spConnection conn)  
 {
-    std::cout << "EchoServer conn closed." << std::endl;
+    // std::cout << "EchoServer conn closed." << std::endl;
+    printf("Connection closed.(fd=%d, ip=%s, port=%d).\n", conn->fd(), conn->ip().c_str(), conn->port());
 
     ///////////////////////
     //根据业务需求，拓展代码。
@@ -81,7 +83,7 @@ void EchoServer::OnMessage(spConnection conn,std::string& message)
 // 数据发送完成后，在TcpServer类中回调此函数。
 void EchoServer::HandleSendComplete(spConnection conn)     
 {
-    std::cout << "Message send complete." << std::endl;
+    // std::cout << "Message send complete." << std::endl;
 
     ///////////////////////
     //根据业务需求，拓展代码。

@@ -40,7 +40,7 @@ void ThreadPool::worker()
         try
         {
             task();
-            printf("%s thread(%ld) execute task.\n", threadType_.c_str(), syscall(SYS_gettid));
+            // printf("%s thread(%ld) execute task.\n", threadType_.c_str(), syscall(SYS_gettid));
         }
         catch(const std::exception& e)
         {

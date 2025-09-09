@@ -100,7 +100,7 @@ void EventLoop::wakeup()
 
 void EventLoop::handleWakeup()
 {
-    printf("handleWakeup() thread is %ld.\n", syscall(SYS_gettid));
+    // printf("handleWakeup() thread is %ld.\n", syscall(SYS_gettid));
 
     uint64_t val;
     read(wakeup_fd_, &val, sizeof(val));
@@ -135,10 +135,10 @@ void EventLoop::handleTimer()
     else
     {
         // printf("从事件循环闹钟响了。\n");
-        printf("EventLoop::handletimer() thread is %ld fd", syscall(SYS_gettid));
+        // printf("EventLoop::handletimer() thread is %ld fd", syscall(SYS_gettid));
         time_t now=time(0);
         for (auto it = conns_.begin(); it != conns_.end(); ) {
-            printf(" %d", it->first);
+            // printf(" %d", it->first);
             if (it->second->timeout(now, timeout_)) {
                 timer_cb_(it->first);   //在TcpServer删除超时的conn。
                 {
@@ -149,7 +149,6 @@ void EventLoop::handleTimer()
                 ++it;
             }
         }
-        printf("\n");
     }
 }
 

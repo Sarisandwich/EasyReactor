@@ -36,7 +36,7 @@ void Epoll::removeChannel(Channel* ch)
 {
     if(ch->is_inepoll()==true)
     {
-        printf("removechannel.\n");
+        // printf("removechannel.\n");
         epoll_ctl(epollfd_, EPOLL_CTL_DEL, ch->fd(), 0);
     }
 }

@@ -15,8 +15,7 @@ Connection::Connection(EventLoop* loop, std::unique_ptr<Socket> clientsock):loop
 
 Connection::~Connection()
 {
-
-    printf("Connection 被析构。\n");
+    // printf("Connection 被析构。\n");
 }
 
 int Connection::fd() const
@@ -63,11 +62,7 @@ void Connection::onmessage()
                     std::string message(inputbuffer_.data()+4, len);   //读取报文内容。丢弃头部。
                     inputbuffer_.erase(0, len+4);   //清除inputbuffer_中已读取的内容。
 
-                    ///////////////////////////////////////////
-                    //这个位置，对inputbuffer_里的数据经过某些处理。
-                    ///////////////////////////////////////////
-
-                    printf("message (eventfd=%d): %s\n",fd(),message.c_str());
+                    // printf("message (eventfd=%d): %s\n",fd(),message.c_str());
 
                     lastTime_=TimeStamp::now(); //更新时间戳。
                     // std::cout<<"lastTime="<<lastTime_.tostring()<<std::endl;
