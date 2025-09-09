@@ -19,8 +19,16 @@ void EchoServer::Start()
 {
     tcpserver_.start();
 }
-#include<syscall.h>
-#include<unistd.h>
+
+void EchoServer::Stop()
+{
+    //停止工作线程。
+    pool_.stop();
+    // printf("工作线程已停止。\n");
+    //停止IO线程(事件循环)。
+    tcpserver_.stop();
+}
+
 // 处理新客户端连接请求，在TcpServer类中回调此函数。
 void EchoServer::HandleNewConnection(spConnection conn)    
 {

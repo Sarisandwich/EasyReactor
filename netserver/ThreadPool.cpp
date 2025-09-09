@@ -8,14 +8,21 @@ ThreadPool::ThreadPool(size_t numThread, const std::string& threadType): threadT
     }
 }
 
-ThreadPool::~ThreadPool()
+void ThreadPool::stop()
 {
+    if(stop_.load()) return;
+
     stop_.store(true);
     cond_.notify_all();
     for(auto& t:threads_)
     {
         if(t.joinable()) t.join();
     }
+}
+
+ThreadPool::~ThreadPool()
+{
+    stop();
 }
 
 #include<syscall.h>

@@ -31,6 +31,22 @@ void TcpServer::start()
     mainloop_->run();
 }
 
+void TcpServer::stop()
+{
+    //停止主事件循环。
+    mainloop_->stop();
+    // printf("主事件循环已停止。\n");
+    //停止从事件循环。
+    for(int i=0;i<numThread_;++i)
+    {
+        subloops_[i]->stop();
+    }
+    // printf("从事件循环已停止。\n");
+    //停止IO线程。
+    pool_->stop();
+    // printf("IO线程已停止。\n");
+}
+
 void TcpServer::newConnection(std::unique_ptr<Socket> clientsock)
 {
     spConnection conn=std::make_shared<Connection>(subloops_[clientsock->fd()%numThread_].get(), std::move(clientsock));

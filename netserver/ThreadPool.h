@@ -30,4 +30,6 @@ public:
 
     void enqueue(std::function<void()> task);
     size_t size();  //返回线程池大小。
+
+    void stop();    //停止线程池。
 };

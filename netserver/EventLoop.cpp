@@ -37,7 +37,7 @@ void EventLoop::run()
     threadid_=syscall(SYS_gettid);  //获取事件循环所在的线程id。
 
     //事件循环。
-    while(true)
+    while(!stop_.load())
     {
         //channels保存返回的发生事件的通道。
         //通道channel保存着epoll_wait()返回的事件信息。
@@ -54,6 +54,12 @@ void EventLoop::run()
             }
         }
     }
+}
+
+void EventLoop::stop()
+{
+    stop_.store(true);
+    wakeup();   //唤醒事件循环。如果没有这一行代码，事件循环将在下次闹钟响或者epoll_wait()超时才会停下来。
 }
 
 void EventLoop::update_channel(Channel* ch)
